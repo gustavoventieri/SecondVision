@@ -38,12 +38,11 @@ Aqui estão alguns documentos construídos ao decorrer do trabalho:
 * Diagrama de Sequência
 * Diagrama de Atividade
 * Wireframes
-
+  
 ## Desenvolvedores
 
 Obrigado pela dedicação e foco de todos os envolvidos!
 
-<a href="https://github.com/gustavoventieri" target="_blank"><img src="imagens-readme/gustavo.jpeg"></a>
-<a href="https://github.com/nickolss/" target="_blank"><img src="imagens-readme/nickolas.jpeg"></a>
-<a href="https://github.com/PedroFAraujo" target="_blank"><img src="imagens-readme/pedro.jpeg"></a>
-<a href="https://github.com/TiagoBryan" target="_blank"><img src="imagens-readme/tiago.jpeg"></a>
+# Autores
+| [<img src="imagens-readme/gustavo.jpeg" width=115><br><sub>Gustavo Mendes Ventieri Mariano</sub>](https://github.com/gustavoventieri/) |  [<img src="imagens-readme/nickolas.jpeg" width=115><br><sub>Nickolas Maia de Araujo</sub>](https://github.com/nickolss)  |  [<img src="imagens-readme/pedro.jpeg" width=115><br><sub>Pedro Fernandes Araújo</sub>](https://github.com/PedroFAraujo) | [<img src="imagens-readme/tiago.jpeg" width=115><br><sub>Tiago Bryan Ramos de Oliveira</sub>](https://github.com/TiagoBryan) | 
+| :---: | :---: | :---: | :---: |
