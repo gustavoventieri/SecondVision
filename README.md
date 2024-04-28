@@ -13,9 +13,7 @@
 
 - [Introdução](#Introdução)
 - [Documentação](#Documentação)
-- [Funcionalidades](#feedback)
-- [Habilidades Aprendidas](#sponsors-)
-- [Contribuidores](#acknowledgments)
+- [Desenvolvedores](#Desenvolvedores)
 
 
 
