@@ -12,6 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+
     "ios": {
       "supportsTablet": true
     },
@@ -35,10 +36,7 @@
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": [
-      "expo-router",
-      "react-native-ble-plx"
-    ],
+    "plugins": ["expo-router", "react-native-ble-plx"],
     "experiments": {
       "typedRoutes": true
     }
