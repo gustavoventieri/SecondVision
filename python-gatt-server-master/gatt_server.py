@@ -180,10 +180,9 @@ class TestCharacteristic(Characteristic):
             self.TEST_CHRC_UUID,
             ['read', 'notify'],
             service)
-        print('Aquifoi3')
-        self.value = [dbus.Byte(ord(c)) for c in 'TesteAAAA']
-        print('Aquifoi6')
-        #self.set_value('TIAGO')
+        
+        self.value = [dbus.Byte(ord(c)) for c in 'Start']
+       
 
 def register_app_cb():
     print('GATT application registered')
