@@ -1,19 +1,8 @@
-from __future__ import print_function
 import dbus
 import dbus.exceptions
 import dbus.mainloop.glib
 import dbus.service
-
-import array
-
 import functools
-
-try:
-    from gi.repository import GObject
-except ImportError:
-    import gobject as GObject
-	
-from random import randint
 
 import exceptions
 import adapters
@@ -108,6 +97,8 @@ class Characteristic(dbus.service.Object):
         self.service = service
         self.flags = flags
         self.descriptors = []
+        self.value = []
+        self.notifying = False
         dbus.service.Object.__init__(self, bus, self.path)
 
     def get_properties(self):
@@ -149,28 +140,31 @@ class Characteristic(dbus.service.Object):
                          in_signature='a{sv}',
                          out_signature='ay')
     def ReadValue(self, options):
-        print('Default ReadValue called, returning error')
-        raise exceptions.NotSupportedException()
-
-    @dbus.service.method(GATT_CHRC_IFACE, in_signature='aya{sv}')
-    def WriteValue(self, value, options):
-        print('Default WriteValue called, returning error')
-        raise exceptions.NotSupportedException()
+        print('TestCharacteristic Read: ' + repr(self.value))
+        return self.value
 
     @dbus.service.method(GATT_CHRC_IFACE)
     def StartNotify(self):
-        print('Default StartNotify called, returning error')
-        raise exceptions.NotSupportedException()
+        if self.notifying:
+            return
+        self.notifying = True
+        self.PropertiesChanged(GATT_CHRC_IFACE, {'Value': self.value}, [])
 
     @dbus.service.method(GATT_CHRC_IFACE)
     def StopNotify(self):
-        print('Default StopNotify called, returning error')
-        raise exceptions.NotSupportedException()
+        if not self.notifying:
+            return
+        self.notifying = False
 
-    @dbus.service.signal(DBUS_PROP_IFACE,
-                         signature='sa{sv}as')
-    def PropertiesChanged(self, interface, changed, invalidated):
-        pass
+    def send_update(self, value):
+        self.set_value(value)
+        if self.notifying:
+            self.PropertiesChanged(GATT_CHRC_IFACE, {'Value': self.value}, [])
+
+    def set_value(self, value):
+        self.value = [dbus.Byte(ord(c)) for c in value]
+        if self.notifying:
+            self.PropertiesChanged(GATT_CHRC_IFACE, {'Value': self.value}, [])
 
 class TestService(Service):
     TEST_SVC_UUID = '12345678-1234-5678-1234-56789abcdef0'
@@ -184,13 +178,12 @@ class TestCharacteristic(Characteristic):
         Characteristic.__init__(
             self, bus, index,
             self.TEST_CHRC_UUID,
-            ['read'],
+            ['read', 'notify'],
             service)
-        self.value = [dbus.Byte(ord(c)) for c in 'TIAGO']
-
-    def ReadValue(self, options):
-        print('TestCharacteristic Read: ' + repr(self.value))
-        return self.value
+        print('Aquifoi3')
+        self.value = [dbus.Byte(ord(c)) for c in 'TesteAAAA']
+        print('Aquifoi6')
+        #self.set_value('TIAGO')
 
 def register_app_cb():
     print('GATT application registered')
@@ -211,3 +204,5 @@ def gatt_server_main(mainloop, bus, adapter_name):
     service_manager.RegisterApplication(app.get_path(), {},
                                         reply_handler=register_app_cb,
                                         error_handler=functools.partial(register_app_error_cb, mainloop))
+    return app
+
