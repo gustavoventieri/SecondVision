@@ -19,6 +19,9 @@ from ultralytics import YOLO
 import pytesseract
 import time
 from collections import deque
+from spellchecker import SpellChecker
+
+spell = SpellChecker(language='pt')
 
 class ObjectTracker:
     def __init__(self, window_size=5):
@@ -46,8 +49,16 @@ class ObjectTracker:
                     if obj not in self.last_announcement or (current_time - self.last_announcement[obj]) > self.announcement_interval:
                         announcements.append(obj)
                         self.last_announcement[obj] = current_time
-        
+
         return announcements
+
+
+def correct_text(text):
+    words = text.strip().split()
+    corrected_words = [spell.correction(word) if spell.correction(word) else '' for word in words]
+
+    return " ".join(filter(None, corrected_words))
+
 
 def yolo_detection_loop(characteristic):
     modelo = YOLO('yolov8n.pt')
@@ -79,9 +90,10 @@ def yolo_detection_loop(characteristic):
 
         # Detecção de texto com pytesseract
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        text = pytesseract.image_to_string(gray)
+        text = pytesseract.image_to_string(gray, lang='por')
         if text.strip():
-            detections.append(f'texto: {text.strip()}')
+            corrected_text = correct_text(text)
+            detections.append(f'texto: {corrected_text}')
 
         tracker.update(detections)
         announcements = tracker.get_announcements()
