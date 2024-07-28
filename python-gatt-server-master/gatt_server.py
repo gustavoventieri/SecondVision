@@ -170,19 +170,30 @@ class TestService(Service):
     TEST_SVC_UUID = '12345678-1234-5678-1234-56789abcdef0'
     def __init__(self, bus, index):
         Service.__init__(self, bus, index, self.TEST_SVC_UUID, True)
-        self.add_characteristic(TestCharacteristic(bus, 0, self))
+        self.add_characteristic(YoloCharacteristic(bus, 0, self))
+        self.add_characteristic(TesseractCharacteristic(bus, 1, self))
 
-class TestCharacteristic(Characteristic):
-    TEST_CHRC_UUID = '12345678-1234-5678-1234-56789abcdef1'
+class YoloCharacteristic(Characteristic):
+    YOLO_CHRC_UUID = '12345678-1234-5678-1234-56789abcdef1'
     def __init__(self, bus, index, service):
         Characteristic.__init__(
             self, bus, index,
-            self.TEST_CHRC_UUID,
+            self.YOLO_CHRC_UUID,
             ['read', 'notify'],
             service)
         
-        self.value = [dbus.Byte(ord(c)) for c in 'Start']
-       
+        #self.value = [dbus.Byte(ord(c)) for c in 'Start']
+
+class TesseractCharacteristic(Characteristic):
+    TESSERACT_CHRC_UUID = '12345678-1234-5678-1234-56789abcdef2'
+    def __init__(self, bus, index, service):
+        Characteristic.__init__(
+            self, bus, index,
+            self.TESSERACT_CHRC_UUID,
+            ['read', 'notify'],
+            service)
+        
+        #self.value = [dbus.Byte(ord(c)) for c in 'Start']
 
 def register_app_cb():
     print('GATT application registered')
@@ -204,4 +215,3 @@ def gatt_server_main(mainloop, bus, adapter_name):
                                         reply_handler=register_app_cb,
                                         error_handler=functools.partial(register_app_error_cb, mainloop))
     return app
-
