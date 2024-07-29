@@ -26,7 +26,9 @@ export default function App() {
         <Stack.Screen
           name="BluetoothOn"
           component={BluetoothOnScreen}
-          options={{ headerShown: false }}
+          options={{
+            headerShown: false,
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>

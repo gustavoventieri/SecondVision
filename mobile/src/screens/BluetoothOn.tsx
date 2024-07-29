@@ -1,33 +1,49 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Dimensions } from "react-native";
+import { View, StyleSheet, BackHandler } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Font from "expo-font";
-
+import BluetoothStateManager from "react-native-bluetooth-state-manager";
 import { About } from "../components/About";
 import { Devices } from "../components/Devices";
 import { Header } from "../components/Header";
-
-const loadFonts = async () => {
-  await Font.loadAsync({
-    FonteCustomizada: require("../../assets/fonts/Poppins-Medium.ttf"),
-  });
-};
+import { useNavigation } from "@react-navigation/native";
 
 export default function BluetoothOnScreen() {
+  const navigation = useNavigation();
+  const [bluetoothState, setBluetoothState] = useState("PoweredOn");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-  const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
-    loadFonts().then(() => setFontsLoaded(true));
+
+    const checkBluetoothState = async () => {
+      const state = await BluetoothStateManager.getState();
+      setBluetoothState(state);
+    };
+    checkBluetoothState();
+
+    const backAction = () => {
+      // Impede o comportamento padrão do botão de voltar
+      return true;
+    };
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    const subscription = BluetoothStateManager.onStateChange((state) => {
+      setBluetoothState(state);
+    }, true);
+
+    return () => {
+      subscription.remove();
+      backHandler.remove();
+    };
   }, []);
 
-  if (!fontsLoaded) {
-    return null; // Ou um componente de carregamento
-  }
+  if (bluetoothState != "PoweredOn") navigation.navigate("BluetoothOff");
 
   return (
     <View style={styles.container}>
@@ -39,6 +55,7 @@ export default function BluetoothOnScreen() {
       <Header toggleMenu={toggleMenu} props="Meus Dispositvos" />
       <Devices />
       <View />
+
       <View />
 
       <About visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />

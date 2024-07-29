@@ -1,4 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import BluetoothStateManager from "react-native-bluetooth-state-manager";
+import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import {
   Text,
   View,
@@ -8,24 +11,14 @@ import {
   Pressable,
   Platform,
   PermissionsAndroid,
-  NativeModules,
-  NativeEventEmitter,
+  BackHandler,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import BleManager, {
-  BleDisconnectPeripheralEvent,
-  BleManagerDidUpdateValueForCharacteristicEvent,
-  BleScanCallbackType,
-  BleScanMatchMode,
-  BleScanMode,
-  Peripheral,
-  PeripheralInfo,
-} from "react-native-ble-manager";
+import BleManager from "react-native-ble-manager";
 const { width, height } = Dimensions.get("window");
 
 export default function BluetoothOffScreen() {
   const navigation = useNavigation();
+  const [bluetoothState, setBluetoothState] = useState("");
 
   useEffect(() => {
     try {
@@ -43,7 +36,36 @@ export default function BluetoothOffScreen() {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  useEffect(() => {
+    const checkBluetoothState = async () => {
+      const state = await BluetoothStateManager.getState();
+      setBluetoothState(state);
+    };
+    // Ação que faz voltar a tela
+    const backAction = () => {
+      // Impede o comportamento padrão do botão de voltar
+      return true;
+    };
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
 
+    checkBluetoothState();
+
+    const subscription = BluetoothStateManager.onStateChange((state) => {
+      setBluetoothState(state);
+    }, true);
+
+    return () => {
+      subscription.remove();
+      backHandler.remove();
+    };
+  }, []);
+
+  if (bluetoothState == "PoweredOn") navigation.navigate("BluetoothOn");
+
+  
   const handleAndroidPermissions = () => {
     if (Platform.OS === "android" && Platform.Version >= 31) {
       PermissionsAndroid.requestMultiple([
@@ -89,11 +111,11 @@ export default function BluetoothOffScreen() {
 
   const enableBluetooth = async () => {
     try {
-      console.debug("[enableBluetooth]");
+      console.debug("Bluetooth Ativado");
       await BleManager.enableBluetooth();
       navigation.navigate("BluetoothOn");
     } catch (error) {
-      console.error("[enableBluetooth] thrown", error);
+      console.error("Bluetooth não foi ativado", error);
     }
   };
 
