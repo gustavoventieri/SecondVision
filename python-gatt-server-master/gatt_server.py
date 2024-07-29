@@ -6,6 +6,7 @@ import functools
 
 import exceptions
 import adapters
+import os
 
 BLUEZ_SERVICE_NAME = 'org.bluez'
 LE_ADVERTISING_MANAGER_IFACE = 'org.bluez.LEAdvertisingManager1'
@@ -172,6 +173,7 @@ class TestService(Service):
         Service.__init__(self, bus, index, self.TEST_SVC_UUID, True)
         self.add_characteristic(YoloCharacteristic(bus, 0, self))
         self.add_characteristic(TesseractCharacteristic(bus, 1, self))
+        self.add_characteristic(ShutdownCharacteristic(bus, 2, self))
 
 class YoloCharacteristic(Characteristic):
     YOLO_CHRC_UUID = '12345678-1234-5678-1234-56789abcdef1'
@@ -194,6 +196,29 @@ class TesseractCharacteristic(Characteristic):
             service)
         
         #self.value = [dbus.Byte(ord(c)) for c in 'Start']
+
+class ShutdownCharacteristic(Characteristic):
+    SHUTDOWN_CHRC_UUID = '12345678-1234-5678-1234-56789abcdef3'  
+
+    def __init__(self, bus, index, service):
+        Characteristic.__init__(
+            self, bus, index,
+            self.SHUTDOWN_CHRC_UUID,
+            ['write'],
+            service)
+        self.value = []
+
+    @dbus.service.method(GATT_CHRC_IFACE,
+                         in_signature='aya{sv}',
+                         out_signature='ay')
+    def WriteValue(self, value, options):
+        print('Shutdown command received, shutting down...')
+        self.value = value
+        # Encerra a aplicação GATT
+        os.system('sudo systemctl stop bluetooth')
+        # Desliga o sistema operacional
+        os.system('sudo shutdown now')
+
 
 def register_app_cb():
     print('GATT application registered')
