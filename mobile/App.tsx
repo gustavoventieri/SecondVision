@@ -14,20 +14,18 @@ export default function App() {
     <NavigationContainer independent={true}>
       <Stack.Navigator initialRouteName="LoadingScreen">
         <Stack.Screen
+          name="BluetoothOff"
+          component={BluetoothOffScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="Home"
           component={Home}
           options={{ headerShown: false }}
         />
-
         <Stack.Screen
           name="BluetoothOn"
           component={BluetoothOnScreen}
-          options={{ headerShown: false }}
-        />
-
-        <Stack.Screen
-          name="BluetoothOff"
-          component={BluetoothOffScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

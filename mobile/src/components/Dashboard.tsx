@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
   },
   Nivel: {
-    marginTop: 4,
-    color: "white",
+    marginTop: 8,
+    
   },
 });

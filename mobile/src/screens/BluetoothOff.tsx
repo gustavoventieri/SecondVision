@@ -1,10 +1,102 @@
-import React from "react";
-import {Text, View, Image, StyleSheet, Dimensions} from "react-native";
-import {LinearGradient} from "expo-linear-gradient";
-
-const {width, height} = Dimensions.get("window");
+import React, { useEffect } from "react";
+import {
+  Text,
+  View,
+  Image,
+  StyleSheet,
+  Dimensions,
+  Pressable,
+  Platform,
+  PermissionsAndroid,
+  NativeModules,
+  NativeEventEmitter,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import BleManager, {
+  BleDisconnectPeripheralEvent,
+  BleManagerDidUpdateValueForCharacteristicEvent,
+  BleScanCallbackType,
+  BleScanMatchMode,
+  BleScanMode,
+  Peripheral,
+  PeripheralInfo,
+} from "react-native-ble-manager";
+const { width, height } = Dimensions.get("window");
 
 export default function BluetoothOffScreen() {
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    try {
+      BleManager.start({ showAlert: false })
+        .then(() => console.debug("BleManager started."))
+        .catch((error: any) =>
+          console.error("BeManager could not be started.", error)
+        );
+    } catch (error) {
+      console.error("unexpected error starting BleManager.", error);
+      return;
+    }
+
+    handleAndroidPermissions();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleAndroidPermissions = () => {
+    if (Platform.OS === "android" && Platform.Version >= 31) {
+      PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+        PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+      ]).then((result) => {
+        if (result) {
+          console.debug(
+            "[handleAndroidPermissions] User accepts runtime permissions android 12+"
+          );
+        } else {
+          console.error(
+            "[handleAndroidPermissions] User refuses runtime permissions android 12+"
+          );
+        }
+      });
+    } else if (Platform.OS === "android" && Platform.Version >= 23) {
+      PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+      ).then((checkResult) => {
+        if (checkResult) {
+          console.debug(
+            "[handleAndroidPermissions] runtime permission Android <12 already OK"
+          );
+        } else {
+          PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+          ).then((requestResult) => {
+            if (requestResult) {
+              console.debug(
+                "[handleAndroidPermissions] User accepts runtime permission android <12"
+              );
+            } else {
+              console.error(
+                "[handleAndroidPermissions] User refuses runtime permission android <12"
+              );
+            }
+          });
+        }
+      });
+    }
+  };
+
+  const enableBluetooth = async () => {
+    try {
+      console.debug("[enableBluetooth]");
+      await BleManager.enableBluetooth();
+      navigation.navigate("BluetoothOn");
+    } catch (error) {
+      console.error("[enableBluetooth] thrown", error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -24,6 +116,11 @@ export default function BluetoothOffScreen() {
         <Text style={styles.text}>
           Acesse o centro de controle e ligue o Bluetooth.
         </Text>
+      </View>
+      <View style={styles.buttonGroup}>
+        <Pressable style={styles.scanButton} onPress={enableBluetooth}>
+          <Text style={styles.scanButtonText}>{"Habilitar Bluetooth"}</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -50,16 +147,36 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   text: {
-    textAlign: "left",
     fontSize: width * 0.033, // Ajuste o tamanho da fonte conforme necessário
   },
   headerText: {
-    textAlign: "left",
     fontSize: width * 0.055, // Tamanho de fonte maior para o primeiro texto
     marginBottom: 10,
   },
   textBlue: {
     width: "100%",
     paddingLeft: 40,
+    bottom: 20,
+  },
+  buttonGroup: {
+    flexDirection: "row",
+    width: "70%",
+  },
+  scanButton: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderColor: "#0a398a",
+    borderWidth: 2,
+    margin: 10,
+    borderRadius: 15,
+    flex: 1,
+    top: 30,
+  },
+  scanButtonText: {
+    fontSize: 16,
+    letterSpacing: 0.25,
+    color: "#0a398a",
   },
 });
