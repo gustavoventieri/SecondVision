@@ -1,4 +1,4 @@
-rootProject.name = 'SecondVision'
+rootProject.name = 'mobile'
 
 dependencyResolutionManagement {
   versionCatalogs {
