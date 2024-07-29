@@ -16,7 +16,10 @@ import {
   FlatList,
   TouchableHighlight,
   Pressable,
+  Button,
+  Alert
 } from 'react-native';
+import { Buffer } from 'buffer';
 
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { useNavigation } from '@react-navigation/native';
@@ -47,6 +50,7 @@ declare module 'react-native-ble-manager' {
 }
 
 const ScanDevicesScreen = () => {
+  const [notificationData, setNotificationData] = useState("");
   const navigation = useNavigation();
 
   const [isScanning, setIsScanning] = useState(false);
@@ -136,9 +140,11 @@ const ScanDevicesScreen = () => {
     console.log(`[handleConnectPeripheral][${event.peripheral}] connected.`);
   };
 
-  const handleUpdateValueForCharacteristic = (
-    data: BleManagerDidUpdateValueForCharacteristicEvent,
-  ) => {
+  const handleUpdateValueForCharacteristic = (data: BleManagerDidUpdateValueForCharacteristicEvent) => {
+    const dataYOLOPY = Buffer.from(data.value).toString('utf-8');
+      setNotificationData(dataYOLOPY);
+      console.log(`[Notification] ${data}`);
+
     console.debug(
       `[handleUpdateValueForCharacteristic] received data from '${data.peripheral}' with characteristic='${data.characteristic}' and value='${data.value}'`,
     );
@@ -218,13 +224,53 @@ const ScanDevicesScreen = () => {
       peripheralInfo.characteristics?.forEach(async c => {
         try {
           const value = await BleManager.read(peripheralInfo.id, c.service, c.characteristic);
-          console.log("[readCharacteristics]", "peripheralId", peripheralInfo.id, "service", c.service, "char", c.characteristic, "\n\tvalue", value);
+          const yoloResults = Buffer.from(value).toString('utf-8');
+              console.log("YOLO Results:", yoloResults);
+          console.log("[readCharacteristics]", "peripheralId", peripheralInfo.id, "service", c.service, "char", c.characteristic, "\n\tvalue", yoloResults);
         } catch (error) {
           console.error("[readCharacteristics]", "Error reading characteristic", error);
         }
       });
     }
   }
+
+  const sendShutdownCommand = async () => {
+
+    let services = await retrieveServices();
+
+    for (let peripheralInfo of services) {
+      peripheralInfo.characteristics?.forEach(async c => {
+        try {
+          const data = [0x01]; // Comando de desligamento
+          await BleManager.write(peripheralInfo.id, c.service, c.characteristic, data);
+          Alert.alert('Desligamento', 'Comando de desligamento enviado');
+       
+        } catch (error) {
+          console.error('Erro ao enviar comando de desligamento', error);
+          Alert.alert('Erro', 'Não foi possível enviar o comando de desligamento');
+        }
+      });
+    }
+  };
+
+  const startNotification = async () => {
+    let services = await retrieveServices();
+
+    for (let peripheralInfo of services) {
+      peripheralInfo.characteristics?.forEach(async c => {
+        try {
+          await BleManager.startNotification(
+            peripheralInfo.id,
+            c.service,
+            c.characteristic
+          );
+          console.log('Notification started');
+        } catch (error) {
+          console.error('Notification error', error);
+        }
+      });
+    }
+  };
 
   const getAssociatedPeripherals = async () => {
     try {
@@ -260,7 +306,9 @@ const ScanDevicesScreen = () => {
         });
 
         await BleManager.connect(peripheral.id);
+       
         console.debug(`[connectPeripheral][${peripheral.id}] connected.`);
+        startNotification();
 
         setPeripherals(map => {
           let p = map.get(peripheral.id);
@@ -345,6 +393,8 @@ const ScanDevicesScreen = () => {
   function sleep(ms: number) {
     return new Promise<void>(resolve => setTimeout(resolve, ms));
   }
+
+
 
   useEffect(() => {
     try {
@@ -456,6 +506,7 @@ const ScanDevicesScreen = () => {
       <StatusBar />
       <SafeAreaView style={styles.body}>
         <View style={styles.buttonGroup}>
+          <Button title="Desligar" onPress={sendShutdownCommand} />
           <Pressable style={styles.scanButton} onPress={startScan}>
             <Text style={styles.scanButtonText}>
               {isScanning ? 'Scanning...' : 'Scan Bluetooth'}
