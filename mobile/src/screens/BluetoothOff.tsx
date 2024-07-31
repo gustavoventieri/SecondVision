@@ -16,6 +16,8 @@ import {
 import BleManager from "react-native-ble-manager";
 const { width, height } = Dimensions.get("window");
 
+
+
 export default function BluetoothOffScreen() {
   const navigation = useNavigation();
   const [bluetoothState, setBluetoothState] = useState("");
@@ -34,7 +36,7 @@ export default function BluetoothOffScreen() {
 
     handleAndroidPermissions();
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
   useEffect(() => {
     const checkBluetoothState = async () => {
@@ -169,10 +171,10 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   text: {
-    fontSize: width * 0.033, // Ajuste o tamanho da fonte conforme necessário
+    fontSize: width * 0.033, 
   },
   headerText: {
-    fontSize: width * 0.055, // Tamanho de fonte maior para o primeiro texto
+    fontSize: width * 0.055, 
     marginBottom: 10,
   },
   textBlue: {
@@ -192,12 +194,12 @@ const styles = StyleSheet.create({
     borderColor: "#0a398a",
     borderWidth: 2,
     margin: 10,
-    borderRadius: 15,
+    borderRadius: 25,
     flex: 1,
     top: 30,
   },
   scanButtonText: {
-    fontSize: 16,
+    fontSize: width * 0.04,
     letterSpacing: 0.25,
     color: "#0a398a",
   },

@@ -65,6 +65,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: width * 0.05,
     color: "white",
-    right: 95.7,
+    right: width * 0.27,
   },
 });
