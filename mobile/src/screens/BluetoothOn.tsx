@@ -45,6 +45,7 @@ export default function BluetoothOnScreen() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [BackColor, setBackColor] = useState("#FFFFFF");
 
+  
   //Lógica do scan
   const [isScanning, setIsScanning] = useState(false);
   const [peripherals, setPeripherals] = useState(
@@ -113,7 +114,7 @@ export default function BluetoothOnScreen() {
 
   const handleDiscoverPeripheral = (peripheral: Peripheral) => {
     console.debug("[handleDiscoverPeripheral] new BLE peripheral=", peripheral);
-    if(peripheral.id === "1F:12:A7:11:D8:4A"){
+    if(peripheral.id === "50:2F:9B:AA:B9:27"){
       setPeripherals((map) => {
         return new Map(map.set(peripheral.id, peripheral));
       });
@@ -336,7 +337,7 @@ export default function BluetoothOnScreen() {
         <View style={[styles.row, { backgroundColor }]}>
           <Text style={styles.peripheralName}>
             {/* completeLocalName (item.name) & shortAdvertisingName (advertising.localName) may not always be the same */}
-            {item.name || "no-name"}
+            {item.name || "Sem nome"}
             {item.id}
             {item.connecting && " - Conectando..."}
           </Text>
@@ -350,7 +351,10 @@ export default function BluetoothOnScreen() {
       const state = await BluetoothStateManager.getState();
       setBluetoothState(state);
     };
+ 
+
     checkBluetoothState();
+ 
 
     const backAction = () => {
       // Impede o comportamento padrão do botão de voltar
@@ -372,6 +376,7 @@ export default function BluetoothOnScreen() {
   }, []);
 
   if (bluetoothState != "PoweredOn") navigation.navigate("BluetoothOff");
+
 
   return (
     <View style={styles.container}>
