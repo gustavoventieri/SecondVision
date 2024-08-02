@@ -29,7 +29,7 @@ import BleManager, {
 } from "react-native-ble-manager";
 
 declare module "react-native-ble-manager" {
-  // enrich local contract with custom state properties needed by App.tsx
+  
   interface Peripheral {
     connected?: boolean;
     connecting?: boolean;
@@ -61,7 +61,7 @@ export default function BluetoothOnScreen() {
 
   const startScan = () => {
     if (!isScanning) {
-      // reset found peripherals before scan
+      
       setPeripherals(new Map<Peripheral["id"], Peripheral>());
 
       try {
@@ -75,9 +75,9 @@ export default function BluetoothOnScreen() {
             result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] ===
               "granted"
           ) {
-            console.debug("[handleAndroidPermissions] Permissions granted.");
+            console.debug("[handleAndroidPermissions] Permissao concedida.");
           } else {
-            console.error("[handleAndroidPermissions] Permissions denied.");
+            console.error("[handleAndroidPermissions] Permissao negada.");
           }
         });
         PermissionsAndroid.request(
@@ -85,15 +85,15 @@ export default function BluetoothOnScreen() {
         ).then((result) => {
           if (result === "granted") {
             console.debug(
-              "[handleAndroidPermissions] Location permission granted."
+              "[handleAndroidPermissions] Permissão de localização concedida."
             );
           } else {
             console.error(
-              "[handleAndroidPermissions] Location permission denied."
+              "[handleAndroidPermissions] Permissão de localização negada."
             );
           }
         });
-        console.debug("[startScan] starting scan...");
+        console.debug("[startScan] iniciando verificação...");
         setIsScanning(true);
         BleManager.scan(SERVICE_UUIDS, SECONDS_TO_SCAN_FOR, ALLOW_DUPLICATES, {
           matchMode: BleScanMatchMode.Sticky,
@@ -101,19 +101,19 @@ export default function BluetoothOnScreen() {
           callbackType: BleScanCallbackType.AllMatches,
         })
           .then(() => {
-            console.debug("[startScan] scan promise returned successfully.");
+            console.debug("[startScan] promess de digitalização retornada com sucesso.");
           })
           .catch((err: any) => {
-            console.error("[startScan] ble scan returned in error", err);
+            console.error("[startScan] verificação ble retornou com erro", err);
           });
       } catch (error) {
-        console.error("[startScan] ble scan error thrown", error);
+        console.error("[startScan] erro de verificação impossível gerado", error);
       }
     }
   };
 
   const handleDiscoverPeripheral = (peripheral: Peripheral) => {
-    console.debug("[handleDiscoverPeripheral] new BLE peripheral=", peripheral);
+    console.debug("[handleDiscoverPeripheral] novo periferico BLE =", peripheral);
     if(peripheral.id === "50:2F:9B:AA:B9:27"){
       setPeripherals((map) => {
         return new Map(map.set(peripheral.id, peripheral));
@@ -133,7 +133,7 @@ export default function BluetoothOnScreen() {
         setBackColor("#FFFFFF");
       } catch (error) {
         console.error(
-          `[togglePeripheralConnection][${peripheral.id}] error when trying to disconnect device.`,
+          `[togglePeripheralConnection][${peripheral.id}] erro ao tentar desconectar o dispositivo.`,
           error
         );
       }
@@ -156,7 +156,7 @@ export default function BluetoothOnScreen() {
 
         await BleManager.connect(peripheral.id);
 
-        console.debug(`[connectPeripheral][${peripheral.id}] connected.`);
+        console.debug(`[connectPeripheral][${peripheral.id}] conectado.`);
 
         setPeripherals((map) => {
           let p = map.get(peripheral.id);
@@ -168,13 +168,13 @@ export default function BluetoothOnScreen() {
           return map;
         });
 
-        // before retrieving services, it is often a good idea to let bonding & connection finish properly
+       
         await sleep(900);
 
-        /* Test read current RSSI value, retrieve services first */
+       
         const peripheralData = await BleManager.retrieveServices(peripheral.id);
         console.debug(
-          `[connectPeripheral][${peripheral.id}] retrieved peripheral services`,
+          `[connectPeripheral][${peripheral.id}] serviços periféricos recuperados`,
           peripheralData
         );
 
@@ -188,7 +188,7 @@ export default function BluetoothOnScreen() {
 
         const rssi = await BleManager.readRSSI(peripheral.id);
         console.debug(
-          `[connectPeripheral][${peripheral.id}] retrieved current RSSI value: ${rssi}.`
+          `[connectPeripheral][${peripheral.id}] valor RSSI atual recuperado: ${rssi}.`
         );
 
         if (peripheralData.characteristics) {
@@ -203,12 +203,12 @@ export default function BluetoothOnScreen() {
                     descriptor.uuid
                   );
                   console.debug(
-                    `[connectPeripheral][${peripheral.id}] ${characteristic.service} ${characteristic.characteristic} ${descriptor.uuid} descriptor read as:`,
+                    `[connectPeripheral][${peripheral.id}] ${characteristic.service} ${characteristic.characteristic} ${descriptor.uuid} descriptor lido:`,
                     data
                   );
                 } catch (error) {
                   console.error(
-                    `[connectPeripheral][${peripheral.id}] failed to retrieve descriptor ${descriptor} for characteristic ${characteristic}:`,
+                    `[connectPeripheral][${peripheral.id}] falha ao retornar o descriptor ${descriptor} para characteristic ${characteristic}:`,
                     error
                   );
                 }
@@ -229,7 +229,7 @@ export default function BluetoothOnScreen() {
       }
     } catch (error) {
       console.error(
-        `[connectPeripheral][${peripheral.id}] connectPeripheral error`,
+        `[connectPeripheral][${peripheral.id}] erro ao conectar no periferico`,
         error
       );
     }
@@ -239,7 +239,7 @@ export default function BluetoothOnScreen() {
     return new Promise<void>((resolve) => setTimeout(resolve, ms));
   }
   const handleConnectPeripheral = (event: any) => {
-    console.log(`[handleConnectPeripheral][${event.peripheral}] connected.`);
+    console.log(`[handleConnectPeripheral][${event.peripheral}] conectado.`);
   };
 
   const handleAndroidPermissions = () => {
@@ -250,11 +250,11 @@ export default function BluetoothOnScreen() {
       ]).then((result) => {
         if (result) {
           console.debug(
-            "[handleAndroidPermissions] User accepts runtime permissions android 12+"
+            "[handleAndroidPermissions] O usuário aceita permissões de tempo de execução Android 12+"
           );
         } else {
           console.error(
-            "[handleAndroidPermissions] User refuses runtime permissions android 12+"
+            "[handleAndroidPermissions] O usuário recusa permissões de tempo de execução Android 12+"
           );
         }
       });
@@ -264,7 +264,7 @@ export default function BluetoothOnScreen() {
       ).then((checkResult) => {
         if (checkResult) {
           console.debug(
-            "[handleAndroidPermissions] runtime permission Android <12 already OK"
+            "[handleAndroidPermissions] permissão de tempo de execução Android <12 já está OK"
           );
         } else {
           PermissionsAndroid.request(
@@ -272,11 +272,11 @@ export default function BluetoothOnScreen() {
           ).then((requestResult) => {
             if (requestResult) {
               console.debug(
-                "[handleAndroidPermissions] User accepts runtime permission android <12"
+                "[handleAndroidPermissions] O usuário aceita permissão de execução android <12"
               );
             } else {
               console.error(
-                "[handleAndroidPermissions] User refuses runtime permission android <12"
+                "[handleAndroidPermissions] Usuário recusa permissão de execução android <12"
               );
             }
           });
@@ -287,18 +287,18 @@ export default function BluetoothOnScreen() {
 
   const handleStopScan = () => {
     setIsScanning(false);
-    console.debug("[handleStopScan] scan is stopped.");
+    console.debug("[handleStopScan] Escaneador parou.");
   };
 
   useEffect(() => {
     try {
       BleManager.start({ showAlert: false })
-        .then(() => console.debug("BleManager started."))
+        .then(() => console.debug("BleManager iniciado."))
         .catch((error: any) =>
-          console.error("BeManager could not be started.", error)
+          console.error("BeManager nao pode ser iniciado.", error)
         );
     } catch (error) {
-      console.error("unexpected error starting BleManager.", error);
+      console.error("erro inesperado ao iniciar o BleManager.", error);
       return;
     }
 
@@ -317,12 +317,12 @@ export default function BluetoothOnScreen() {
     handleAndroidPermissions();
 
     return () => {
-      console.debug("[app] main component unmounting. Removing listeners...");
+      console.debug("[app] desmontagem do componente principal. Removendo listeners...");
       for (const listener of listeners) {
         listener.remove();
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, []);
 
   const renderItem = ({ item }: { item: Peripheral }) => {
@@ -336,7 +336,7 @@ export default function BluetoothOnScreen() {
       >
         <View style={[styles.row, { backgroundColor }]}>
           <Text style={styles.peripheralName}>
-            {/* completeLocalName (item.name) & shortAdvertisingName (advertising.localName) may not always be the same */}
+          
             {item.name || "Sem nome"}
             {item.id}
             {item.connecting && " - Conectando..."}
@@ -345,7 +345,7 @@ export default function BluetoothOnScreen() {
       </TouchableHighlight>
     );
   };
-
+  const sendShutdownCommand = () =>{}
   useEffect(() => {
     const checkBluetoothState = async () => {
       const state = await BluetoothStateManager.getState();
@@ -384,7 +384,7 @@ export default function BluetoothOnScreen() {
         colors={["#45A7FF", "#001268"]}
         style={styles.background}
       />
-      <Header toggleMenu={toggleMenu} props="Meus Dispositvos" />
+      <Header toggleMenu={toggleMenu} props="Meus Dispositvos" sendShutdownCommand={sendShutdownCommand} />
       <Devices />
       <View />
       <>

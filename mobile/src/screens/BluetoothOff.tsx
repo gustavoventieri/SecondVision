@@ -25,12 +25,12 @@ export default function BluetoothOffScreen() {
   useEffect(() => {
     try {
       BleManager.start({ showAlert: false })
-        .then(() => console.debug("BleManager started."))
+        .then(() => console.debug("BleManager iniciado."))
         .catch((error: any) =>
-          console.error("BeManager could not be started.", error)
+          console.error("BeManager nao pode iniciar.", error)
         );
     } catch (error) {
-      console.error("unexpected error starting BleManager.", error);
+      console.error("erro inesperado ao iniciar o BleManager.", error);
       return;
     }
 
@@ -76,11 +76,11 @@ export default function BluetoothOffScreen() {
       ]).then((result) => {
         if (result) {
           console.debug(
-            "[handleAndroidPermissions] User accepts runtime permissions android 12+"
+            "[handleAndroidPermissions] O usuário aceita permissões de tempo de execução Android 12+"
           );
         } else {
           console.error(
-            "[handleAndroidPermissions] User refuses runtime permissions android 12+"
+            "[handleAndroidPermissions] O usuário recusa permissões de tempo de execução Android 12+"
           );
         }
       });
@@ -90,7 +90,7 @@ export default function BluetoothOffScreen() {
       ).then((checkResult) => {
         if (checkResult) {
           console.debug(
-            "[handleAndroidPermissions] runtime permission Android <12 already OK"
+            "[handleAndroidPermissions] permissão de tempo de execução Android <12 já está OK"
           );
         } else {
           PermissionsAndroid.request(
@@ -98,11 +98,11 @@ export default function BluetoothOffScreen() {
           ).then((requestResult) => {
             if (requestResult) {
               console.debug(
-                "[handleAndroidPermissions] User accepts runtime permission android <12"
+                "[handleAndroidPermissions] O usuário aceita permissão de execução android <12"
               );
             } else {
               console.error(
-                "[handleAndroidPermissions] User refuses runtime permission android <12"
+                "[handleAndroidPermissions] Usuário recusa permissão de execução android <12"
               );
             }
           });
