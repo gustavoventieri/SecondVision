@@ -88,6 +88,10 @@ def process_frame(frame, yolo_characteristic, tesseract_characteristic):
     if announcements:
         yolo_characteristic.send_update(','.join(announcements))
         print(f"Updated GATT characteristic with: {announcements}")
+    else:
+        # Enviar atualização "none" se não houver detecções
+        yolo_characteristic.send_update('none')
+        print("Updated GATT characteristic with: 'none'")
 
     # PyTesseract processing
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
