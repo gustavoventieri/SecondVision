@@ -6,7 +6,7 @@ import { About } from "../components/About";
 import { Header } from "../components/Header";
 import { Devices } from "../components/Devices";
 import { Dashboard } from "../components/Dashboard";
-import { useNavigation } from "@react-navigation/native";
+import { CurrentRenderContext, useNavigation } from "@react-navigation/native";
 import * as Speech from 'expo-speech';
 import BleManager, { BleScanCallbackType, BleScanMatchMode, BleScanMode, Peripheral, PeripheralInfo, BleDisconnectPeripheralEvent, BleManagerDidUpdateValueForCharacteristicEvent } from "react-native-ble-manager";
 import { TouchableOpacity } from "react-native-gesture-handler";
@@ -30,9 +30,8 @@ declare module 'react-native-ble-manager' {
 }
 
 export default function Home() {
-  const [notificationData, setNotificationData] = useState("");
   const navigation = useNavigation();
-  const [isOn, setIsOn] = useState(false);
+  const [isOn, setIsOn] = useState(true);
   const [StatusText, setStatusText] = useState("Desligado");
   const [inputValue, setInputValue] = useState('');
   const [inputValueInt, setInputValueInt] = useState(0);
@@ -43,8 +42,8 @@ export default function Home() {
   const [tesseractResults, setTesseractResults] = useState('');
   const specificMacAddress = '50:2F:9B:AA:B9:27';
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+ 
 
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -69,27 +68,6 @@ export default function Home() {
     if (event.peripheral === specificMacAddress) {
       navigation.navigate("BluetoothOn");
     }
-  };
-
-  const handleUpdateValueForCharacteristic = (data: BleManagerDidUpdateValueForCharacteristicEvent) => {
-    const dataYOLOPY = Buffer.from(data.value).toString('utf-8');
-    setNotificationData(dataYOLOPY);
-    console.log(`[Notificacao] ${data}`);
-
-    console.debug(`[handleUpdateValueForCharacteristic] recebendo data de '${data.peripheral}' com characteristic='${data.characteristic}' e value='${data.value}'`);
-
-    resetTimer(); //Reinicia o temporizador sempre que novos dados são recebidos
-  };
-
-  const resetTimer = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-    // Define um temporizador de 10 segundos
-    timerRef.current = setTimeout(() => {
-      Alert.alert('Conexão perdida', 'O servidor GATT parou de enviar dados.');
-      console.log('TemporizadorAcabou')
-    }, 10000);
   };
 
   const retrieveConnected = async () => {
@@ -117,6 +95,7 @@ export default function Home() {
   };
 
   const retrieveServices = async () => {
+    await retrieveConnected();
     const peripheralInfos: PeripheralInfo[] = [];
     for (let [peripheralId, peripheral] of peripherals) {
  
@@ -130,43 +109,13 @@ export default function Home() {
     return peripheralInfos;
   };
 
-  const readCharacteristics = async () => {
-    retrieveConnected();
-    
-    let services = await retrieveServices();
-    try{
-    
-    for (let peripheralInfo of services) {
-     
-      peripheralInfo.characteristics?.forEach(async c => {
-        try {
-          const value = await BleManager.read(peripheralInfo.id, c.service, c.characteristic);
-          const result = Buffer.from(value).toString('utf-8');
-
-          if (c.characteristic === '12345678-1234-5678-1234-56789abcdef1') {
-            setYoloResults(result);
-            console.log("YOLO Resultados:", result);
-          } else if (c.characteristic === '12345678-1234-5678-1234-56789abcdef2') {
-            setTesseractResults(result);
-            console.log("Tesseract Resultados:", result);
-          }
-         
-          
-        } catch (error) {
-          console.error("[readCharacteristics]", "Característica de erro de leitura", error);
-        }
-      });
-    }}catch(error){
-      console.error("[readCharacteristics]", "Característica de erro de leitura", error);
-    }
-  };
-
   const startNotification = async () => {
     let services = await retrieveServices();
 
     for (let peripheralInfo of services) {
       peripheralInfo.characteristics?.forEach(async c => {
         try {
+          if((c.service === "12345678-1234-5678-1234-56789abcdef0" && c.characteristic === "12345678-1234-5678-1234-56789abcdef1") || (c.service === "12345678-1234-5678-1234-56789abcdef0" && c.characteristic === "12345678-1234-5678-1234-56789abcdef2"))
           await BleManager.startNotification(
             peripheralInfo.id,
             c.service,
@@ -179,23 +128,85 @@ export default function Home() {
       });
     }
   };
+  const handleUpdateValueForCharacteristic = (data: BleManagerDidUpdateValueForCharacteristicEvent) => {
+    const dataYOLOPY = Buffer.from(data.value).toString('utf-8');
 
-  const sendShutdownCommand = async () => {
-    let services = await retrieveServices();
-
-    for (let peripheralInfo of services) {
-      peripheralInfo.characteristics?.forEach(async c => {
-        try {
-          const data = [0x01]; // Comando de desligamento
-          await BleManager.write(peripheralInfo.id, c.service, c.characteristic, data);
-          Alert.alert('Desligamento', 'Comando de desligamento enviado');
-        } catch (error) {
-          console.error('Erro ao enviar comando de desligamento', error);
-          Alert.alert('Erro', 'Não foi possível enviar o comando de desligamento');
-        }
-      });
+    if (data.characteristic === '12345678-1234-5678-1234-56789abcdef1') {
+      
+      setYoloResults(dataYOLOPY);
+      console.log("YOLO Resultados:", dataYOLOPY);
+    } else if (data.characteristic === '12345678-1234-5678-1234-56789abcdef2') {
+      setTesseractResults(dataYOLOPY);
+      console.log("Tesseract Resultados:", dataYOLOPY);
     }
+    console.log(`[Notificacao] ${dataYOLOPY}`);
+
+    console.debug(`[handleUpdateValueForCharacteristic] recebendo data de '${data.peripheral}' com characteristic='${data.characteristic}' e value='${dataYOLOPY}'`);
+
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+
+    setIsOn(true);
+    setStatusText("Ligado");
+
+    updateTimeoutRef.current = setTimeout(() => {
+      setIsOn(false);
+      setStatusText("Desligado");
+    }, 10000); // 5 segundos sem atualização para considerar o sistema parado
   };
+
+  // Função para enviar o comando de desligamento
+const sendShutdownCommand = async () => {
+  // Fala o texto de confirmação
+  speak('Você realmente deseja desligar os dispositivos?', inputValueInt);
+
+  // Exibe um alerta de confirmação antes de enviar o comando
+  Alert.alert(
+    'Confirmação de Desligamento',
+    'Você realmente deseja desligar os dispositivos?',
+    [
+      {
+        text: 'Cancelar',
+        onPress: () => {
+          console.log('Desligamento cancelado');
+          speak('Desligamento cancelado', inputValueInt);
+        },
+        style: 'cancel',
+      },
+      {
+        text: 'Confirmar',
+        onPress: async () => {
+          try {
+            let services = await retrieveServices();
+
+            for (let peripheralInfo of services) {
+              peripheralInfo.characteristics?.forEach(async c => {
+                if((c.service === "12345678-1234-5678-1234-56789abcdef0" && c.characteristic === "12345678-1234-5678-1234-56789abcdef3")){
+                try {
+                  
+                  speak('Comando de desligamento enviado', inputValueInt);
+                  const data = [0x01]; // Comando de desligamento
+                  await BleManager.write(peripheralInfo.id, c.service, c.characteristic, data);
+                 
+                  
+                } catch (error) {
+                  console.error('Erro ao enviar comando de desligamento', error);
+                 
+                }}
+              });
+            }
+          } catch (error) {
+            console.error('Erro ao recuperar serviços', error);
+            Alert.alert('Erro', 'Não foi possível recuperar os serviços');
+            speak('Não foi possível recuperar os serviços', inputValueInt);
+          }
+        },
+      },
+    ],
+    { cancelable: false } // O alerta não pode ser cancelado tocando fora dele
+  );
+};
 
   const handleAndroidPermissions = () => {
     if (Platform.OS === "android" && Platform.Version >= 31) {
@@ -230,42 +241,68 @@ export default function Home() {
     try {
       BleManager.start({ showAlert: false })
         .then(() => console.debug('BleManager iniciado.'))
-        .catch((error: any) => console.error('BeManager no pode iniciar.', error));
+        .catch((error: any) => console.error('BeManager não pode iniciar.', error));
     } catch (error) {
       console.error('erro inesperado ao iniciar o BleManager.', error);
       return;
     }
 
+    handleAndroidPermissions();
+
+   startNotification()
     const listeners = [
       bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', handleDisconnectedPeripheral),
-      bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', handleUpdateValueForCharacteristic),
+      bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', handleUpdateValueForCharacteristic)
     ];
-
-    handleAndroidPermissions();
-    startNotification(); // Inicie a notificação quando o componente for montado
-
-   
-    const intervalId = setInterval(() => {
-      readCharacteristics();
-    }, 5500);
 
     return () => {
       console.debug('[app] main component unmounting. Removing listeners...');
+  
       for (const listener of listeners) {
         listener.remove();
       }
-      if (timerRef.current) {
-       clearTimeout(timerRef.current);
-      }
-      console.log('saiu')
     };
 
   }, []);
 
-  const toggleSwitch = () => {
-    setIsOn(!isOn);
-    setStatusText(isOn ? "Desligado" : "Ligado");
-  };
+  useEffect(() => {
+    if (isOn) {
+      speak("Sistema ligado e pronto para uso", inputValueInt);
+    } else if (!isOn) {
+      speak("Sistema de identificação parou de funcionar, tente reiniciar o dispositivo físico", inputValueInt);
+    }
+  }, [isOn]);
+
+  useEffect(() => {
+    if((currentModeIndex === 0) || (currentModeIndex === 2)){
+      if(yoloResults !== 'none'){
+        if(yoloResults !== ''){
+      speak(`Objetos a frente: ${yoloResults}`, inputValueInt);
+     }
+    }}
+
+  }, [yoloResults]);
+  useEffect(() => {
+    if((currentModeIndex === 0) || (currentModeIndex === 1)){
+    if(tesseractResults !== ''){
+    speak(`Texto identificado: ${tesseractResults}`, inputValueInt);
+     
+  }}
+
+}, [tesseractResults]);
+
+useEffect(() => {
+  if(currentModeIndex === 0){
+    speak(`Esse modo detecta tanto objetos possivelmente perigosos como textos estáticos.`, inputValueInt);
+  }else if(currentModeIndex === 1){
+    speak(`Esse modo detecta apenas textos estáticos.`, inputValueInt);
+  }else if(currentModeIndex === 2){
+    speak(`Esse modo detecta apenas objetos possivelmente perigosos.`, inputValueInt);
+  }
+
+}, [currentModeIndex]);
+
+
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -286,7 +323,7 @@ export default function Home() {
   const handleChange = (value: string) => {
     const numericValue = value.replace(/[^0-9]/g, '');
     setInputValue(numericValue);
-    setInputValueInt(parseInt(inputValue, 10) * 1000);
+    setInputValueInt(parseInt(numericValue, 10) * 1000);
   };
 
   const handleSubmit = () => {
@@ -336,7 +373,7 @@ export default function Home() {
         <Header toggleMenu={toggleMenu} props="Second Vision" sendShutdownCommand={sendShutdownCommand} />
         <Devices />
         <Dashboard
-          toggleSwitch={toggleSwitch}
+          
           isOn={isOn}
           statusText={StatusText}
           batteryLevel={batteryLevel}
@@ -347,7 +384,6 @@ export default function Home() {
           nextMode={nextMode}
           previousMode={previousMode}
           currentMode={currentMode}
-          readCharacteristics={readCharacteristics}
         />
         
         <About visible={isMenuOpen} onClose={() => setIsMenuOpen(false)} />

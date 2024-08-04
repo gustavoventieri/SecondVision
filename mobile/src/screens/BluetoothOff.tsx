@@ -35,7 +35,6 @@ export default function BluetoothOffScreen() {
     }
 
     handleAndroidPermissions();
-
    
   }, []);
   useEffect(() => {
@@ -54,6 +53,7 @@ export default function BluetoothOffScreen() {
     );
 
     checkBluetoothState();
+    
 
     const subscription = BluetoothStateManager.onStateChange((state) => {
       setBluetoothState(state);

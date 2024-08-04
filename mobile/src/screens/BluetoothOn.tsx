@@ -27,7 +27,7 @@ import BleManager, {
   Peripheral,
   PeripheralInfo,
 } from "react-native-ble-manager";
-
+import * as Speech from 'expo-speech';
 declare module "react-native-ble-manager" {
   
   interface Peripheral {
@@ -44,6 +44,8 @@ export default function BluetoothOnScreen() {
   const [bluetoothState, setBluetoothState] = useState("PoweredOn");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [BackColor, setBackColor] = useState("#FFFFFF");
+
+
 
   
   //Lógica do scan
@@ -63,7 +65,7 @@ export default function BluetoothOnScreen() {
     if (!isScanning) {
       
       setPeripherals(new Map<Peripheral["id"], Peripheral>());
-
+     
       try {
         PermissionsAndroid.requestMultiple([
           PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
@@ -102,6 +104,7 @@ export default function BluetoothOnScreen() {
         })
           .then(() => {
             console.debug("[startScan] promess de digitalização retornada com sucesso.");
+           
           })
           .catch((err: any) => {
             console.error("[startScan] verificação ble retornou com erro", err);
@@ -113,13 +116,13 @@ export default function BluetoothOnScreen() {
   };
 
   const handleDiscoverPeripheral = (peripheral: Peripheral) => {
-    console.debug("[handleDiscoverPeripheral] novo periferico BLE =", peripheral);
-    if(peripheral.id === "50:2F:9B:AA:B9:27"){
-      setPeripherals((map) => {
-        return new Map(map.set(peripheral.id, peripheral));
-      });
-    }
-    
+    console.debug("[handleDiscoverPeripheral] novo periférico BLE =", peripheral);
+      if (peripheral.id === "50:2F:9B:AA:B9:27") {
+        setPeripherals((map) => {
+          return new Map(map.set(peripheral.id, peripheral));
+        });
+       
+      }
 
     //if (!peripheral.name) {
     //peripheral.name = 'Sem Nome';
@@ -284,11 +287,21 @@ export default function BluetoothOnScreen() {
       });
     }
   };
+  const speak = async (text: string) => {
+    Speech.speak(text, {
+      language: 'pt-BR'
+    });
+  };
 
   const handleStopScan = () => {
     setIsScanning(false);
-    console.debug("[handleStopScan] Escaneador parou.");
+  console.debug("[handleStopScan] Escaneador parou.");
+
+  
+
   };
+
+
 
   useEffect(() => {
     try {
@@ -338,7 +351,6 @@ export default function BluetoothOnScreen() {
           <Text style={styles.peripheralName}>
           
             {item.name || "Sem nome"}
-            {item.id}
             {item.connecting && " - Conectando..."}
           </Text>
         </View>
@@ -369,11 +381,15 @@ export default function BluetoothOnScreen() {
       setBluetoothState(state);
     }, true);
 
+    speak(`Clique no botão de escanear para localizar o seu Second Vision`);
+
     return () => {
       subscription.remove();
       backHandler.remove();
     };
   }, []);
+
+
 
   if (bluetoothState != "PoweredOn") navigation.navigate("BluetoothOff");
 

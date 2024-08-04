@@ -15,8 +15,6 @@ import { LinearGradient } from "expo-linear-gradient";
 const { width } = Dimensions.get("window");
 
 interface DashboardProps {
-  toggleSwitch: () => void;
-  readCharacteristics: () => void;
   isOn: boolean;
   statusText: string;
   batteryLevel: number;
@@ -33,8 +31,6 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
-  toggleSwitch,
-  readCharacteristics,
   isOn,
   statusText,
   batteryLevel,
@@ -86,7 +82,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <View style={styles.orgQuadro}>
         <View style={styles.quadroinfo}>
           <Text style={styles.infoSystem}>Modos de operação:</Text>
-          <TouchableOpacity onPress={readCharacteristics}><View style={{height: 100}}><Text style={{fontSize: 20}} >Aqui</Text></View></TouchableOpacity>
           <View style={styles.descriptionContainer}>
             <Text style={styles.descriptionText}>{currentMode.description}</Text>
           </View>
