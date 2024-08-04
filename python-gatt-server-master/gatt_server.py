@@ -157,6 +157,11 @@ class Characteristic(dbus.service.Object):
             return
         self.notifying = False
 
+    @dbus.service.signal(DBUS_PROP_IFACE,
+                         signature='sa{sv}as')
+    def PropertiesChanged(self, interface, changed, invalidated):
+        pass
+        
     def send_update(self, value):
         self.set_value(value)
         if self.notifying:
