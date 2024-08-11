@@ -123,10 +123,6 @@ export default function BluetoothOnScreen() {
         });
        
       }
-
-    //if (!peripheral.name) {
-    //peripheral.name = 'Sem Nome';
-    //}
   };
 
   const togglePeripheralConnection = async (peripheral: Peripheral) => {

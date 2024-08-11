@@ -124,7 +124,6 @@ export default function BluetoothOffScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        // Background Linear Gradient
         colors={["#001268", "#45A7FF"]}
         style={styles.background}
       />
@@ -157,11 +156,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   image: {
-    width: "100%", // Image takes up the full width of the container
+    width: "100%", 
     height: undefined,
     aspectRatio: 1.3,
     marginBottom: 60,
-    // Opções: 'cover', 'contain', 'stretch', 'repeat', 'center'
   },
   background: {
     position: "absolute",

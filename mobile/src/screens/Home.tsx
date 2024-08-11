@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, StyleSheet, Dimensions, BackHandler, Alert, Platform, PermissionsAndroid, NativeModules, NativeEventEmitter, SafeAreaView, ScrollView, Text } from "react-native";
+import { StyleSheet, Alert, Platform, PermissionsAndroid, NativeModules, NativeEventEmitter, SafeAreaView, ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Font from "expo-font";
 import { About } from "../components/About";
 import { Header } from "../components/Header";
 import { Devices } from "../components/Devices";
 import { Dashboard } from "../components/Dashboard";
-import { CurrentRenderContext, useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import * as Speech from 'expo-speech';
-import BleManager, { BleScanCallbackType, BleScanMatchMode, BleScanMode, Peripheral, PeripheralInfo, BleDisconnectPeripheralEvent, BleManagerDidUpdateValueForCharacteristicEvent } from "react-native-ble-manager";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import BleManager, {  Peripheral, PeripheralInfo, BleDisconnectPeripheralEvent, BleManagerDidUpdateValueForCharacteristicEvent } from "react-native-ble-manager";
 import { Buffer } from 'buffer';
 
 
@@ -45,26 +44,26 @@ export default function Home() {
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
  
 
-  const speakQueueRef = useRef<string[]>([]); // Fila para armazenar textos
-  const isSpeakingRef = useRef<boolean>(false); // Estado para verificar se já está falando
+  const speakQueueRef = useRef<string[]>([]);
+  const isSpeakingRef = useRef<boolean>(false); 
 
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   const processSpeakQueue = async () => {
     while (speakQueueRef.current.length > 0) {
-      const text = speakQueueRef.current.shift(); // Remove o primeiro item da fila
+      const text = speakQueueRef.current.shift(); 
       if (text) {
         await Speech.speak(text, { language: 'pt-BR' });
-        await delay(inputValueInt); // Aguarda o intervalo definido pelo usuário
+        await delay(inputValueInt); 
       }
     }
-    isSpeakingRef.current = false; // Marca que terminou de falar
+    isSpeakingRef.current = false; 
   };
 
   const speak = (text: string) => {
-    speakQueueRef.current.push(text); // Adiciona o texto à fila
+    speakQueueRef.current.push(text); 
     console.log(inputValueInt)
-    // Se não estiver falando, inicia o processamento da fila
+   
     if (!isSpeakingRef.current) {
       isSpeakingRef.current = true;
       processSpeakQueue();
@@ -170,60 +169,58 @@ export default function Home() {
     updateTimeoutRef.current = setTimeout(() => {
       setIsOn(false);
       setStatusText("Desligado");
-    }, 10000); // 5 segundos sem atualização para considerar o sistema parado
+    }, 10000); // 10 segundos sem atualização para considerar o sistema parado
   };
 
   // Função para enviar o comando de desligamento
-const sendShutdownCommand = async () => {
-  // Fala o texto de confirmação
-  speak('Você realmente deseja desligar o dispositivo?');
-
-  // Exibe um alerta de confirmação antes de enviar o comando
-  Alert.alert(
-    'Confirmação de Desligamento',
-    'Você realmente deseja desligar o dispositivo?',
-    [
-      {
-        text: 'Cancelar',
-        onPress: () => {
-          console.log('Desligamento cancelado');
-          speak('Desligamento cancelado');
+  const sendShutdownCommand = async () => {
+   
+    speak('Você realmente deseja desligar o dispositivo?');
+  
+ 
+    Alert.alert(
+      'Confirmação de Desligamento',
+      'Você realmente deseja desligar o dispositivo?',
+      [
+        {
+          text: 'Cancelar',
+          onPress: () => {
+            console.log('Desligamento cancelado');
+            speak('Desligamento cancelado');
+          },
+          style: 'cancel',
         },
-        style: 'cancel',
-      },
-      {
-        text: 'Confirmar',
-        onPress: async () => {
-          try {
-            let services = await retrieveServices();
-
-            for (let peripheralInfo of services) {
-              peripheralInfo.characteristics?.forEach(async c => {
-                if((c.service === "12345678-1234-5678-1234-56789abcdef0" && c.characteristic === "12345678-1234-5678-1234-56789abcdef3")){
-                try {
-                  
-                  speak('Comando de desligamento enviado');
-                  const data = [0x01]; // Comando de desligamento
-                  await BleManager.write(peripheralInfo.id, c.service, c.characteristic, data);
-                 
-                  
-                } catch (error) {
-                  console.error('Erro ao enviar comando de desligamento', error);
-                 
-                }}
-              });
+        {
+          text: 'Confirmar',
+          onPress: async () => {
+            try {
+              let services = await retrieveServices();
+  
+              for (let peripheralInfo of services) {
+                for (let c of peripheralInfo.characteristics || []) {
+                  if (c.service === "12345678-1234-5678-1234-56789abcdef0" && c.characteristic === "12345678-1234-5678-1234-56789abcdef3") {
+                    try {
+                      speak('Comando de desligamento enviado');
+                      const data = [0x01]; // Comando de desligamento
+                      await BleManager.write(peripheralInfo.id, c.service, c.characteristic, data);
+                    } catch (error) {
+                      console.error('Erro ao enviar comando de desligamento', error);
+                    }
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Erro ao recuperar serviços', error);
+              Alert.alert('Erro', 'Não foi possível recuperar os serviços');
+              speak('Não foi possível recuperar os serviços');
             }
-          } catch (error) {
-            console.error('Erro ao recuperar serviços', error);
-            Alert.alert('Erro', 'Não foi possível recuperar os serviços');
-            speak('Não foi possível recuperar os serviços');
-          }
+          },
         },
-      },
-    ],
-    { cancelable: false } // O alerta não pode ser cancelado tocando fora dele
-  );
-};
+      ],
+      { cancelable: false } 
+    );
+  };
+  
 
   const handleAndroidPermissions = () => {
     if (Platform.OS === "android" && Platform.Version >= 31) {
