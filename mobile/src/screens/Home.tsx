@@ -34,7 +34,9 @@ export default function Home() {
   const [StatusText, setStatusText] = useState("Desligado");
   const [inputValue, setInputValue] = useState('');
   const [inputValueInt, setInputValueInt] = useState(0);
-  const [batteryLevel, setBatteryLevel] = useState(80);
+  const [batteryLevel, setBatteryLevel] = useState(100);
+  const hasAnnouncedOnce = useRef(false);
+  const [estimatedDuration, setEstimatedDuration] = useState(0);
   const [currentModeIndex, setCurrentModeIndex] = useState(0);
   const [peripherals, setPeripherals] = useState(new Map<Peripheral['id'], Peripheral>());
   const [yoloResults, setYoloResults] = useState('');
@@ -146,6 +148,7 @@ export default function Home() {
   };
   const handleUpdateValueForCharacteristic = (data: BleManagerDidUpdateValueForCharacteristicEvent) => {
     const dataYOLOPY = Buffer.from(data.value).toString('utf-8');
+    const [batteryLevel, estimatedTime] = dataYOLOPY.split(',').map(Number);
 
     if (data.characteristic === '12345678-1234-5678-1234-56789abcdef1') {
       
@@ -154,7 +157,13 @@ export default function Home() {
     } else if (data.characteristic === '12345678-1234-5678-1234-56789abcdef2') {
       setTesseractResults(dataYOLOPY);
       console.log("Tesseract Resultados:", dataYOLOPY);
-    }
+    }else if (data.characteristic === '12345678-1234-5678-1234-56789abcdef4') {
+      setBatteryLevel(batteryLevel);  // Atualiza o nível da bateria
+      setEstimatedDuration(estimatedTime);  // Atualiza o tempo estimado de duração
+      console.log(`Nível da Bateria: ${batteryLevel}%`);
+      console.log(`Tempo Estimado de Duração: ${estimatedTime.toFixed(2)} horas`);
+  }
+
     console.log(`[Notificacao] ${dataYOLOPY}`);
 
     console.debug(`[handleUpdateValueForCharacteristic] recebendo data de '${data.peripheral}' com characteristic='${data.characteristic}' e value='${dataYOLOPY}'`);
@@ -316,6 +325,20 @@ useEffect(() => {
   }
 
 }, [currentModeIndex]);
+
+useEffect(() => {
+  if (batteryLevel === null) return;
+  if (batteryLevel > 20) {
+      // Se a bateria está acima de 20 e não foi notificado antes
+      if (!hasAnnouncedOnce.current) {
+          speak(`Bateria a ${batteryLevel}%. Tempo estimado de uso restante: ${estimatedDuration} horas.`);
+          hasAnnouncedOnce.current = true;
+      }
+  } else {
+          speak(`Bateria a ${batteryLevel}%. Tempo estimado de uso restante: ${estimatedDuration} horas. A bateria está imprópria para uso.`);
+  
+  }
+}, [batteryLevel]);
 
 
 
