@@ -45,13 +45,30 @@ export default function Home() {
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
  
 
+  const speakQueueRef = useRef<string[]>([]); // Fila para armazenar textos
+  const isSpeakingRef = useRef<boolean>(false); // Estado para verificar se já está falando
+
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-  const speak = async (text: string, delayValue: number) => {
-    Speech.speak(text, {
-      language: 'pt-BR'
-    });
-    await delay(delayValue);
+  const processSpeakQueue = async () => {
+    while (speakQueueRef.current.length > 0) {
+      const text = speakQueueRef.current.shift(); // Remove o primeiro item da fila
+      if (text) {
+        await Speech.speak(text, { language: 'pt-BR' });
+        await delay(inputValueInt); // Aguarda o intervalo definido pelo usuário
+      }
+    }
+    isSpeakingRef.current = false; // Marca que terminou de falar
+  };
+
+  const speak = (text: string) => {
+    speakQueueRef.current.push(text); // Adiciona o texto à fila
+    console.log(inputValueInt)
+    // Se não estiver falando, inicia o processamento da fila
+    if (!isSpeakingRef.current) {
+      isSpeakingRef.current = true;
+      processSpeakQueue();
+    }
   };
 
   const handleDisconnectedPeripheral = (event: BleDisconnectPeripheralEvent) => {
@@ -159,18 +176,18 @@ export default function Home() {
   // Função para enviar o comando de desligamento
 const sendShutdownCommand = async () => {
   // Fala o texto de confirmação
-  speak('Você realmente deseja desligar os dispositivos?', inputValueInt);
+  speak('Você realmente deseja desligar o dispositivo?');
 
   // Exibe um alerta de confirmação antes de enviar o comando
   Alert.alert(
     'Confirmação de Desligamento',
-    'Você realmente deseja desligar os dispositivos?',
+    'Você realmente deseja desligar o dispositivo?',
     [
       {
         text: 'Cancelar',
         onPress: () => {
           console.log('Desligamento cancelado');
-          speak('Desligamento cancelado', inputValueInt);
+          speak('Desligamento cancelado');
         },
         style: 'cancel',
       },
@@ -185,7 +202,7 @@ const sendShutdownCommand = async () => {
                 if((c.service === "12345678-1234-5678-1234-56789abcdef0" && c.characteristic === "12345678-1234-5678-1234-56789abcdef3")){
                 try {
                   
-                  speak('Comando de desligamento enviado', inputValueInt);
+                  speak('Comando de desligamento enviado');
                   const data = [0x01]; // Comando de desligamento
                   await BleManager.write(peripheralInfo.id, c.service, c.characteristic, data);
                  
@@ -199,7 +216,7 @@ const sendShutdownCommand = async () => {
           } catch (error) {
             console.error('Erro ao recuperar serviços', error);
             Alert.alert('Erro', 'Não foi possível recuperar os serviços');
-            speak('Não foi possível recuperar os serviços', inputValueInt);
+            speak('Não foi possível recuperar os serviços');
           }
         },
       },
@@ -267,9 +284,9 @@ const sendShutdownCommand = async () => {
 
   useEffect(() => {
     if (isOn) {
-      speak("Sistema ligado e pronto para uso", inputValueInt);
+      speak("Sistema ligado e pronto para uso");
     } else if (!isOn) {
-      speak("Sistema de identificação parou de funcionar, tente reiniciar o dispositivo físico", inputValueInt);
+      speak("Sistema de identificação parou de funcionar, tente reiniciar o dispositivo físico");
     }
   }, [isOn]);
 
@@ -277,7 +294,8 @@ const sendShutdownCommand = async () => {
     if((currentModeIndex === 0) || (currentModeIndex === 2)){
       if(yoloResults !== 'none'){
         if(yoloResults !== ''){
-      speak(`Objetos a frente: ${yoloResults}`, inputValueInt);
+      speak(`Objetos a frente: ${yoloResults}`);
+    
      }
     }}
 
@@ -285,19 +303,19 @@ const sendShutdownCommand = async () => {
   useEffect(() => {
     if((currentModeIndex === 0) || (currentModeIndex === 1)){
     if(tesseractResults !== ''){
-    speak(`Texto identificado: ${tesseractResults}`, inputValueInt);
-     
+    speak(`Texto identificado: ${tesseractResults}`);
+  
   }}
 
 }, [tesseractResults]);
 
 useEffect(() => {
   if(currentModeIndex === 0){
-    speak(`Esse modo detecta tanto objetos possivelmente perigosos como textos estáticos.`, inputValueInt);
+    speak(`Esse modo detecta tanto objetos possivelmente perigosos como textos estáticos.`);
   }else if(currentModeIndex === 1){
-    speak(`Esse modo detecta apenas textos estáticos.`, inputValueInt);
+    speak(`Esse modo detecta apenas textos estáticos.`);
   }else if(currentModeIndex === 2){
-    speak(`Esse modo detecta apenas objetos possivelmente perigosos.`, inputValueInt);
+    speak(`Esse modo detecta apenas objetos possivelmente perigosos.`);
   }
 
 }, [currentModeIndex]);
