@@ -204,25 +204,43 @@ class TesseractCharacteristic(Characteristic):
         #self.value = [dbus.Byte(ord(c)) for c in 'Start']
 
 """
-class BatteryLevelCharacteristic(Characteristic):
-    BATTERY_LEVEL_CHRC_UUID = '12345678-1234-5678-1234-56789abcdef4'
-    
+class BatteryCharacteristic(Characteristic):
+    BATTERY_CHRC_UUID = '12345678-1234-5678-1234-56789abcdef4'
+  
     def __init__(self, bus, index, service):
         Characteristic.__init__(
             self, bus, index,
-            self.BATTERY_LEVEL_CHRC_UUID,
+            self.BATTERY_CHRC_UUID,
             ['read', 'notify'],
             service)
-        self.value = []
+        self.capacity = 5000  # Capacidade da bateria em mAh (exemplo)
+        self.voltage = 3.7    # Voltagem da bateria em V (exemplo)
+        self.power_consumption = 500  # Consumo de energia em mA (exemplo)
+        self.value = self.get_battery_level()
 
+    def get_battery_level(self):
+        battery_level = os.popen("vcgencmd measure_volts").readline()
+        return battery_level
+        # Aqui, estou apenas simulando com um valor fixo
+        return [dbus.Byte(75)]  # Simula 75% de carga
+
+    def calculate_remaining_time(self):
+        battery_level = self.get_battery_level()[0]
+        energy_remaining = (battery_level / 100.0) * self.capacity * self.voltage  # em Wh
+        estimated_time = energy_remaining / (self.power_consumption * self.voltage / 1000.0)  # em horas
+        return estimated_time
+
+    @dbus.service.method(GATT_CHRC_IFACE,
+                         in_signature='a{sv}',
+                         out_signature='ay')
     def ReadValue(self, options):
-        battery_level = get_battery_level()
-        self.value = [dbus.Byte(ord(c)) for c in str(battery_level)]
+        self.value = self.get_battery_level()
+        estimated_time = self.calculate_remaining_time()
+        print(f'Reading battery level: {self.value[0]}%, Estimated time remaining: {estimated_time:.2f} hours')
         return self.value
 
-    def update_battery_level(self):
-        battery_level = get_battery_level()
-        self.set_value(str(battery_level))
+    def send_battery_update(self):
+        self.value = self.get_battery_level()
         if self.notifying:
             self.PropertiesChanged(GATT_CHRC_IFACE, {'Value': self.value}, [])
 """
@@ -250,10 +268,6 @@ class ShutdownCharacteristic(Characteristic):
         os.system('sudo shutdown now')
 
 """
-def get_battery_level():
-    battery_level = os.popen("vcgencmd measure_volts").readline()
-    return battery_level
-
 def battery_monitor_loop(battery_characteristic):
     while True:
         battery_characteristic.update_battery_level()
