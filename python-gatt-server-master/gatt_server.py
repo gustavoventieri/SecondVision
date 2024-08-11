@@ -179,6 +179,7 @@ class TestService(Service):
         self.add_characteristic(YoloCharacteristic(bus, 0, self))
         self.add_characteristic(TesseractCharacteristic(bus, 1, self))
         self.add_characteristic(ShutdownCharacteristic(bus, 2, self))
+       #self.add_characteristic(BatteryLevelCharacteristic(bus, 3, self))
 
 class YoloCharacteristic(Characteristic):
     YOLO_CHRC_UUID = '12345678-1234-5678-1234-56789abcdef1'
@@ -202,6 +203,30 @@ class TesseractCharacteristic(Characteristic):
         
         #self.value = [dbus.Byte(ord(c)) for c in 'Start']
 
+"""
+class BatteryLevelCharacteristic(Characteristic):
+    BATTERY_LEVEL_CHRC_UUID = '12345678-1234-5678-1234-56789abcdef4'
+    
+    def __init__(self, bus, index, service):
+        Characteristic.__init__(
+            self, bus, index,
+            self.BATTERY_LEVEL_CHRC_UUID,
+            ['read', 'notify'],
+            service)
+        self.value = []
+
+    def ReadValue(self, options):
+        battery_level = get_battery_level()
+        self.value = [dbus.Byte(ord(c)) for c in str(battery_level)]
+        return self.value
+
+    def update_battery_level(self):
+        battery_level = get_battery_level()
+        self.set_value(str(battery_level))
+        if self.notifying:
+            self.PropertiesChanged(GATT_CHRC_IFACE, {'Value': self.value}, [])
+"""
+
 class ShutdownCharacteristic(Characteristic):
     SHUTDOWN_CHRC_UUID = '12345678-1234-5678-1234-56789abcdef3'  
 
@@ -224,6 +249,20 @@ class ShutdownCharacteristic(Characteristic):
         # Desliga o sistema operacional
         os.system('sudo shutdown now')
 
+"""
+def get_battery_level():
+    battery_level = os.popen("vcgencmd measure_volts").readline()
+    return battery_level
+
+def battery_monitor_loop(battery_characteristic):
+    while True:
+        battery_characteristic.update_battery_level()
+        time.sleep(60)  # Atualizar a cada minuto
+
+battery_characteristic = app.services[0].characteristics[3]
+battery_thread = threading.Thread(target=battery_monitor_loop, args=(battery_characteristic,))
+battery_thread.start()
+"""
 
 def register_app_cb():
     print('GATT application registered')
