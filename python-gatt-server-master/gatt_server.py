@@ -219,14 +219,18 @@ class BatteryCharacteristic(Characteristic):
         self.value = self.get_battery_level()
 
     def get_battery_level(self):
-        battery_level = os.popen("vcgencmd measure_volts").readline()
-        return battery_level
-        # Aqui, estou apenas simulando com um valor fixo
-        return [dbus.Byte(75)]  # Simula 75% de carga
+        # Exemplo com valor fixo ou valor lido do sistema
+        battery_level_str = os.popen("vcgencmd measure_volts").readline().strip()
+        battery_level = int(battery_level_str.split('=')[1].replace('V', ''))  # Convertendo o valor para mV
+        battery_level_percentage = (battery_level - 3400) / (4200 - 3400) * 100  # Simulação de percentual
+        return [dbus.Byte(int(battery_level_percentage))]  # Simula um percentual de carga de bateria
 
     def calculate_remaining_time(self):
-        battery_level = self.get_battery_level()[0]
-        energy_remaining = (battery_level / 100.0) * self.capacity * self.voltage  # em Wh
+        # Obtenha o nível da bateria em porcentagem
+        battery_level_percentage = self.get_battery_level()[0]
+        # Calcular a energia restante em Wh
+        energy_remaining = (battery_level_percentage / 100.0) * self.capacity * self.voltage  # em Wh
+        # Estimar o tempo restante em horas
         estimated_time = energy_remaining / (self.power_consumption * self.voltage / 1000.0)  # em horas
         return estimated_time
 
@@ -234,12 +238,17 @@ class BatteryCharacteristic(Characteristic):
                          in_signature='a{sv}',
                          out_signature='ay')
     def ReadValue(self, options):
-        self.value = self.get_battery_level()
+        battery_level = self.get_battery_level()[0]
         estimated_time = self.calculate_remaining_time()
-        print(f'Reading battery level: {self.value[0]}%, Estimated time remaining: {estimated_time:.2f} hours')
+        # Combine o nível da bateria e o tempo estimado em um array
+        print(f'Reading battery level: {battery_level}%, Estimated time remaining: {estimated_time:.2f} hours')
+        # Encode o nível da bateria e o tempo estimado como uma string e, em seguida, como bytes
+        battery_info_str = f'{battery_level},{estimated_time:.2f}'
+        self.value = [dbus.Byte(ord(c)) for c in battery_info_str]
         return self.value
 
     def send_battery_update(self):
+        # Envie o nível da bateria e o tempo estimado de duração
         self.value = self.get_battery_level()
         if self.notifying:
             self.PropertiesChanged(GATT_CHRC_IFACE, {'Value': self.value}, [])
