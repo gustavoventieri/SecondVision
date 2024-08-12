@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import BluetoothStateManager from "react-native-bluetooth-state-manager";
 import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation, StackActions } from "@react-navigation/native";
 import {
   Text,
   View,
@@ -14,8 +14,8 @@ import {
   BackHandler,
 } from "react-native";
 import BleManager from "react-native-ble-manager";
-const { width, height } = Dimensions.get("window");
-
+const { width } = Dimensions.get("window");
+import * as Speech from 'expo-speech';
 
 
 export default function BluetoothOffScreen() {
@@ -35,7 +35,7 @@ export default function BluetoothOffScreen() {
     }
 
     handleAndroidPermissions();
-   
+    speak("Habilite o Bluetooth no botão abaixo")
   }, []);
   useEffect(() => {
     const checkBluetoothState = async () => {
@@ -65,7 +65,12 @@ export default function BluetoothOffScreen() {
     };
   }, []);
 
-  if (bluetoothState == "PoweredOn") navigation.navigate("BluetoothOn");
+  useEffect(() => {
+  if (bluetoothState === "PoweredOn"){ 
+    navigation.dispatch(StackActions.replace('ControlScreen'));
+    
+  }
+}, [bluetoothState, navigation]);
 
   
   const handleAndroidPermissions = () => {
@@ -110,12 +115,18 @@ export default function BluetoothOffScreen() {
       });
     }
   };
-
+  const speak = async (text: string) => {
+    Speech.speak(text, {
+      language: 'pt-BR'
+    });
+  };
   const enableBluetooth = async () => {
     try {
       console.debug("Bluetooth Ativado");
       await BleManager.enableBluetooth();
-      navigation.navigate("BluetoothOn");
+       //navigation.dispatch(
+       // StackActions.replace('ControlScreen')
+      //);
     } catch (error) {
       console.error("Bluetooth não foi ativado", error);
     }

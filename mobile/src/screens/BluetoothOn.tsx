@@ -19,13 +19,12 @@ import BluetoothStateManager from "react-native-bluetooth-state-manager";
 import { About } from "../components/About";
 import { Devices } from "../components/Devices";
 import { Header } from "../components/Header";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, StackActions } from "@react-navigation/native";
 import BleManager, {
   BleScanCallbackType,
   BleScanMatchMode,
   BleScanMode,
   Peripheral,
-  PeripheralInfo,
 } from "react-native-ble-manager";
 import * as Speech from 'expo-speech';
 declare module "react-native-ble-manager" {
@@ -224,6 +223,7 @@ export default function BluetoothOnScreen() {
           }
           return map;
         });
+        
         navigation.navigate("Home");
       }
     } catch (error) {
@@ -385,9 +385,14 @@ export default function BluetoothOnScreen() {
     };
   }, []);
 
+  
 
-
-  if (bluetoothState != "PoweredOn") navigation.navigate("BluetoothOff");
+    useEffect(() => {
+      if (bluetoothState != "PoweredOn") {  
+        navigation.dispatch(
+          StackActions.replace('ControlScreen')
+        );};
+    }, [bluetoothState, navigation]);
 
 
   return (

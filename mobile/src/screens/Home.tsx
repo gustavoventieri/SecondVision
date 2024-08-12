@@ -6,7 +6,7 @@ import { About } from "../components/About";
 import { Header } from "../components/Header";
 import { Devices } from "../components/Devices";
 import { Dashboard } from "../components/Dashboard";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, StackActions } from "@react-navigation/native";
 import * as Speech from 'expo-speech';
 import BleManager, {  Peripheral, PeripheralInfo, BleDisconnectPeripheralEvent, BleManagerDidUpdateValueForCharacteristicEvent } from "react-native-ble-manager";
 import { Buffer } from 'buffer';

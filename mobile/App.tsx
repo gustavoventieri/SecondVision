@@ -6,13 +6,22 @@ import { createStackNavigator } from "@react-navigation/stack";
 import BluetoothOffScreen from "./src/screens/BluetoothOff";
 import BluetoothOnScreen from "./src/screens/BluetoothOn";
 import Home from "./src/screens/Home";
+import ControlScreen from "./src/screens/ControlScreen";
+
+
+
 const Stack = createStackNavigator();
 
 enableScreens();
 export default function App() {
   return (
     <NavigationContainer independent={true}>
-      <Stack.Navigator initialRouteName="LoadingScreen">
+      <Stack.Navigator initialRouteName="ControlScreen">
+        <Stack.Screen
+          name="ControlScreen"
+          component={ControlScreen}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="BluetoothOff"
           component={BluetoothOffScreen}
