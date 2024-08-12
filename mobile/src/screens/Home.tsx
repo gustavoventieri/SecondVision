@@ -34,7 +34,7 @@ export default function Home() {
   const [StatusText, setStatusText] = useState("Desligado");
   const [inputValue, setInputValue] = useState('');
   const [inputValueInt, setInputValueInt] = useState(0);
-  const [batteryLevel, setBatteryLevel] = useState(100);
+  const [batteryLevel, setBatteryLevel] = useState(0);
   const hasAnnouncedOnce = useRef(false);
   const [estimatedDuration, setEstimatedDuration] = useState(0);
   const [currentModeIndex, setCurrentModeIndex] = useState(0);
@@ -327,6 +327,7 @@ useEffect(() => {
 }, [currentModeIndex]);
 
 useEffect(() => {
+  if (batteryLevel === 0) return;
   if (batteryLevel === null) return;
   if (batteryLevel > 20) {
       // Se a bateria está acima de 20 e não foi notificado antes
