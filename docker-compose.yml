@@ -1,0 +1,18 @@
+services:
+  mobile_application:
+    build:
+      context: ./mobile
+      dockerfile: Dockerfile
+    working_dir: /usr/src/app
+    volumes:
+      # Mapeia o diretório mobile para o diretório de trabalho dentro do contêiner
+      - ./mobile:/usr/src/app
+      # Evita que o diretório node_modules dentro do contêiner seja sobrescrito pelo volume
+      - /usr/src/app/node_modules
+    ports:
+      - "19000:19000"  # Porta padrão para a interface web do Expo
+      - "19001:19001"  # Porta para o Metro bundler
+      - "19002:19002"  # Porta para o WebSocket do Metro bundler
+    stdin_open: true  # Permite que o contêiner receba entrada do terminal
+    tty: true         # Aloca um terminal TTY para o contêiner
+    command: npm start  # Comando para iniciar a aplicação gerando o QR Code, para acessar pelo Expo Go
