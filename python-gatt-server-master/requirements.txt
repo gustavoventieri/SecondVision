@@ -1,1 +1,11 @@
+# Python dependencies
 dbus-python
+pygobject
+opencv-python-headless
+ultralytics
+pytesseract
+tesseract-ocr-por
+pyspellchecker
+
+# Note: Install Portuguese language data for Tesseract using the following command:
+# sudo apt-get install tesseract-ocr-por
