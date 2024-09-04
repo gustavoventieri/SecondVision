@@ -4,10 +4,12 @@ import dbus.exceptions
 import dbus.mainloop.glib
 import dbus.service
 import array
+import sys
+import gi
 try:
-    from gi.repository import GObject
+    from gi.repository import GLib
 except ImportError:
-    import gobject as GObject
+    print("Erro ao importar o GLib")
 import advertising
 import gatt_server
 import argparse
@@ -125,7 +127,7 @@ def main():
 
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
     bus = dbus.SystemBus()
-    mainloop = GObject.MainLoop()
+    mainloop = GLib.MainLoop()
 
     advertising.advertising_main(mainloop, bus, adapter_name)
     app = gatt_server.gatt_server_main(mainloop, bus, adapter_name)
