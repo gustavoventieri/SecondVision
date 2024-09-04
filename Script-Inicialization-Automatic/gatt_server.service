@@ -1,0 +1,14 @@
+[Unit]
+Description=Servidor GATT BLE
+After=network.target
+
+[Service]
+ExecStart=/home/second/start_gatt_server.sh
+WorkingDirectory=/root/
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=second
+
+[Install]
+WantedBy=multi-user.target
