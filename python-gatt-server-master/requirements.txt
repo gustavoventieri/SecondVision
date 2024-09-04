@@ -1,7 +1,8 @@
 # Python dependencies
 dbus-python
 pygobject
-opencv-python-headless
+#opencv-python-headless
+opencv-python
 ultralytics
 pytesseract
 tesseract-ocr-por
