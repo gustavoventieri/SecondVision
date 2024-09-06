@@ -3,7 +3,6 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeScreen from "./src/screens/Home";
-import SettingsScreen from "./src/screens/Settings";
 import ControlScreen from "./src/screens/ControlScreen";
 import BluetoothOffScreen from "./src/screens/BluetoothOff";
 import BluetoothOnScreen from "./src/screens/BluetoothOn";
@@ -25,16 +24,6 @@ function TabNavigator() {
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{
-          headerShown: false,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" color={color} size={size} />
           ),
         }}
       />
