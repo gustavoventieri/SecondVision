@@ -10,17 +10,19 @@ interface HeaderProps {
 	props: string;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-	toggleMenu,
-	props,
-}) => {
+export const Header: React.FC<HeaderProps> = ({ toggleMenu, props }) => {
 	const navigation = useNavigation();
 	const route = useRoute();
 
 	if (route.name == "BluetoothOn") {
 		return (
 			<View style={styles.headerOptions}>
-				<Pressable onPress={toggleMenu} style={styles.information}>
+				<Pressable
+					onPress={toggleMenu}
+					style={styles.information}
+					accessibilityLabel="Abrir menu de informações"
+					accessibilityRole="button"
+				>
 					<Ionicons
 						name="information-circle-outline"
 						size={35}
@@ -33,12 +35,17 @@ export const Header: React.FC<HeaderProps> = ({
 	} else {
 		return (
 			<View style={styles.headerOptions}>
-				<Pressable onPress={toggleMenu} style={styles.information}>
+				<Pressable
+					onPress={toggleMenu}
+					style={styles.information}
+					accessibilityLabel="Abrir menu de informações"
+					accessibilityRole="button"
+				>
 					<Ionicons
 						name="information-circle-outline"
 						size={35}
 						color="#001268"
-            style={styles.information2}
+						style={styles.information2}
 					/>
 				</Pressable>
 				<Text style={styles.textFont}>{props}</Text>
@@ -55,19 +62,19 @@ const styles = StyleSheet.create({
 		top: 5,
 	},
 	information: {
-		alignSelf: 'flex-start',
+		alignSelf: "flex-start",
 	},
 	information2: {
-		alignSelf: 'flex-start',
+		alignSelf: "flex-start",
 	},
 	textFont: {
-    margin: 'auto',
+		margin: "auto",
 		fontWeight: "bold",
 		fontSize: width * 0.05,
 		color: "#001268",
 	},
 	textFontOn: {
-    margin: 'auto',
+		margin: "auto",
 		fontWeight: "bold",
 		fontSize: width * 0.05,
 		color: "#001268",

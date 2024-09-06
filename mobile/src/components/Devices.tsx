@@ -17,6 +17,7 @@ export function Devices() {
 				source={require("../../assets/images/Logo.png")}
 				style={styles.image}
 				resizeMode="contain"
+				accessibilityLabel="Logo da aplicação"
 			/>
 		</View>
 	);

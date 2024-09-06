@@ -42,7 +42,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
 	previousMode,
 	currentMode,
 }) => {
-	
 	let batteryIcon;
 	if (batteryLevel === 100) {
 		batteryIcon = "battery-full-outline"; // Ícone para bateria cheia
@@ -61,35 +60,61 @@ export const Dashboard: React.FC<DashboardProps> = ({
 	return (
 		<SafeAreaView>
 			<View style={styles.dashboard}>
-				<Text style={styles.dashboardTitle}>Estatísticas de Uso</Text>
+				<Text style={styles.dashboardTitle} accessibilityRole="header">
+					Estatísticas de Uso
+				</Text>
 
 				<View style={styles.campos}>
 					<View style={styles.info}>
-						<Ionicons name={batteryIcon} size={35} color="#001268" />
-						<Text style={styles.nivel}>{batteryLevel}%</Text>
-						<Text>Bateria</Text>
-					</View>
-
-					<View style={styles.info}>
-						<Image source={systemIcon} style={styles.systemIcon} />
-						<Text style={styles.nivel}>{isOn ? "Ligado" : "Desligado"}</Text>
-						<Text>Sistema</Text>
+						<Ionicons
+							name={batteryIcon}
+							size={35}
+							color="#001268"
+							accessibilityLabel="Ícone da Bateria"
+						/>
+						<Text style={styles.nivel} accessibilityRole="text">
+							{batteryLevel}%
+						</Text>
+						<Text accessibilityRole="text">Bateria</Text>
 					</View>
 
 					<View style={styles.info}>
 						<Image
-							source={require("../../assets/images/timer_icon.png")} // Caminho para a imagem local
+							source={systemIcon}
 							style={styles.systemIcon}
+							accessibilityLabel={isOn ? "Sistema ligado" : "Sistema desligado"}
 						/>
-						<Text style={styles.nivel}>5s</Text>
-						<Text style={styles.category}>Intervalo </Text>
+						<Text style={styles.nivel} accessibilityRole="text">
+							{isOn ? "Ligado" : "Desligado"}
+						</Text>
+						<Text accessibilityRole="text">Sistema</Text>
+					</View>
+
+					<View style={styles.info}>
+						<Image
+							source={require("../../assets/images/timer_icon.png")}
+							style={styles.systemIcon}
+							accessibilityLabel="Ícone do temporizador"
+						/>
+						<Text style={styles.nivel} accessibilityRole="text">
+							5s
+						</Text>
+						<Text style={styles.category} accessibilityRole="text">
+							Intervalo
+						</Text>
 					</View>
 				</View>
 				<View style={styles.operationMode}>
-					<Text style={styles.dashboardTitle}>Modo de Operação</Text>
+					<Text style={styles.dashboardTitle} accessibilityRole="header">
+						Modo de Operação
+					</Text>
 					<View style={styles.operationCard}>
-						<Text style={styles.cardTitle}>{currentMode.name}</Text>
-						<Text style={styles.cardText}>{currentMode.description}</Text>
+						<Text style={styles.cardTitle} accessibilityRole="text">
+							{currentMode.name}
+						</Text>
+						<Text style={styles.cardText} accessibilityRole="text">
+							{currentMode.description}
+						</Text>
 					</View>
 				</View>
 			</View>
