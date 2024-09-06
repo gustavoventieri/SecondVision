@@ -34,20 +34,32 @@ export default function OperationMode() {
 				<View style={styles.operationMode}>
 					<Text style={styles.operationModeTitle}>Modos de Operação:</Text>
 
-					<View style={styles.operationCard}>
+					<View
+						style={styles.operationCard}
+						accessibilityLabel="Modo Híbrido"
+						accessibilityHint="Esse modo detecta tanto objetos possivelmente perigosos como textos estáticos."
+					>
 						<Text style={styles.cardTitle}>Híbrido</Text>
 						<Text style={styles.cardText}>
 							Esse modo detecta tanto objetos possivelmente perigosos como
 							textos estáticos.
 						</Text>
 					</View>
-					<View style={styles.operationCard}>
+					<View
+						style={styles.operationCard}
+						accessibilityLabel="Modo Texto"
+						accessibilityHint="Esse modo detecta somente textos estáticos."
+					>
 						<Text style={styles.cardTitle}>Texto</Text>
 						<Text style={styles.cardText}>
 							Esse modo detecta somente textos estáticos.
 						</Text>
 					</View>
-					<View style={styles.operationCard}>
+					<View
+						style={styles.operationCard}
+						accessibilityLabel="Modo Objetos"
+						accessibilityHint="Esse modo detecta somente os objetos possivelmente perigosos."
+					>
 						<Text style={styles.cardTitle}>Objetos</Text>
 						<Text style={styles.cardText}>
 							Esse modo detecta somente os objetos possivelmente perigosos.
@@ -83,7 +95,7 @@ const styles = StyleSheet.create({
 	operationMode: {
 		marginHorizontal: 20,
 		display: "flex",
-		gap: 20
+		gap: 20,
 	},
 	operationModeTitle: {
 		color: "#001268",

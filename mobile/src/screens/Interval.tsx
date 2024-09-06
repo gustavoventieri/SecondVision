@@ -45,9 +45,18 @@ export default function Interval() {
 						// value={}
 						placeholder="Intervalo entre Falas"
 						keyboardType="numeric"
+						accessibilityLabel="Campo de intervalo entre falas"
+						accessibilityHint="Insira o intervalo em milissegundos entre as falas emitidas"
 					/>
 
-					<Pressable style={styles.intervalButton}>
+					<Pressable
+						style={styles.intervalButton}
+						onPress={() => {
+							// Adicione a lógica para salvar o intervalo aqui
+						}}
+						accessibilityLabel="Salvar intervalo"
+						accessibilityHint="Toque aqui para salvar o intervalo configurado"
+					>
 						<Text style={styles.intervalButtonText}>Salvar</Text>
 					</Pressable>
 				</View>

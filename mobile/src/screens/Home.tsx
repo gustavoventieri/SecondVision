@@ -459,7 +459,7 @@ export default function Home() {
 	const currentMode = modes[currentModeIndex];
 
 	return (
-		<SafeAreaView style={styles.container}>
+		<SafeAreaView style={styles.container} accessible>
 			<ScrollView contentContainerStyle={styles.scrollContent}>
 				<Header
 					toggleMenu={toggleMenu}
