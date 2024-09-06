@@ -386,18 +386,22 @@ export default function BluetoothOnScreen() {
 
 	return (
 		<View style={styles.container}>
-			<Header
-				toggleMenu={toggleMenu}
-				props="Meus Dispositvos"
-				sendShutdownCommand={sendShutdownCommand}
-			/>
+			<Header toggleMenu={toggleMenu} props="Meus Dispositvos" />
 			<Devices />
 			<View />
 			<>
 				<StatusBar />
 				<SafeAreaView style={styles.body}>
 					<View style={styles.buttonGroup}>
-						<Pressable style={styles.scanButton} onPress={startScan}>
+						<Pressable
+							style={styles.scanButton}
+							onPress={startScan}
+							accessible
+							accessibilityLabel={
+								isScanning ? "Parar escaneamento" : "Iniciar escaneamento"
+							}
+							accessibilityHint="Clique aqui para iniciar ou parar o escaneamento de dispositivos Bluetooth."
+						>
 							<Text style={styles.scanButtonText}>
 								{isScanning ? "Escaneando..." : "Escanear Bluetooth"}
 							</Text>
