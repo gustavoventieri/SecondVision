@@ -14,9 +14,10 @@ import { Ionicons } from "@expo/vector-icons";
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+// Tab Navigator para telas com o footer
 function TabNavigator() {
   return (
-    <Tab.Navigator initialRouteName="ControlScreen">
+    <Tab.Navigator>
       <Tab.Screen
         name="Home"
         component={HomeScreen}
@@ -37,18 +38,34 @@ function TabNavigator() {
           ),
         }}
       />
+      <Tab.Screen
+        name="Interval"
+        component={IntervalScreen}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="timer-outline" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="OperationMode"
+        component={OperationModeScreen}
+        options={{
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings-sharp" color={color} size={size} />
+          ),
+        }}
+      />
     </Tab.Navigator>
   );
 }
 
-function AppNavigator() {
+// Stack Navigator para telas sem o footer
+function NonTabStackNavigator() {
   return (
-    <Stack.Navigator initialRouteName="TabNavigator">
-      <Stack.Screen
-        name="TabNavigator"
-        component={TabNavigator}
-        options={{ headerShown: false }}
-      />
+    <Stack.Navigator>
       <Stack.Screen
         name="ControlScreen"
         component={ControlScreen}
@@ -64,14 +81,22 @@ function AppNavigator() {
         component={BluetoothOnScreen}
         options={{ headerShown: false }}
       />
+    </Stack.Navigator>
+  );
+}
+
+// Stack Navigator principal
+function AppNavigator() {
+  return (
+    <Stack.Navigator initialRouteName="ControlScreen">
       <Stack.Screen
-        name="Interval"
-        component={IntervalScreen}
+        name="ControlScreen"
+        component={NonTabStackNavigator}
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="OperationMode"
-        component={OperationModeScreen}
+        name="TabNavigator"
+        component={TabNavigator}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
