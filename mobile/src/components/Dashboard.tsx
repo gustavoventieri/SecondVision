@@ -1,250 +1,177 @@
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  Dimensions,
-  StyleSheet,
-  SafeAreaView,
-  TextInput,
-  Alert,
-  Image
+	View,
+	Text,
+	TouchableOpacity,
+	Dimensions,
+	StyleSheet,
+	SafeAreaView,
+	TextInput,
+	Alert,
+	Image,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
 interface DashboardProps {
-  isOn: boolean;
-  statusText: string;
-  batteryLevel: number;
-  inputValue: string;
-  handleChange: (value: string) => void;
-  handleSubmit: () => void;
-  currentModeIndex: number;
-  nextMode: () => void;
-  previousMode: () => void;
-  currentMode: {
-    name: string;
-    description: string;
-  };
+	isOn: boolean;
+	intervalDash: number;
+	batteryLevel: number;
+	currentModeIndex: number;
+	currentMode: {
+		name: string;
+		description: string;
+	};
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
-  isOn,
-  statusText,
-  batteryLevel,
-  inputValue,
-  handleChange,
-  handleSubmit,
-  currentModeIndex,
-  nextMode,
-  previousMode,
-  currentMode,
+	isOn,
+	intervalDash,
+	batteryLevel,
+	currentModeIndex,
+	currentMode,
 }) => {
-  return (
-    <SafeAreaView>
-      <View style={styles.orgQuadro}>
-        <View style={styles.quadroinfo}>
-          <View style={styles.statusSystem}>
-            <Text style={styles.infoSystem}>Status do sistema:</Text>
+	let batteryIcon;
+	if (batteryLevel === 100) {
+		batteryIcon = "battery-full-outline"; 
+	} else if (batteryLevel >= 50) {
+		batteryIcon = "battery-half-outline"; 
+	} 
+	else {
+		batteryIcon = "battery-dead-outline"; 
+	}
 
-            <View
-              style={[styles.button, isOn ? styles.buttonOn : null]}
-              
-            >
-              <View
-                style={[styles.switch, isOn ? styles.switchOn : styles.switchOff]}
-              />
-            </View>
-            <Text style={styles.infoSystem}>{statusText}</Text>
-          </View>
+	const systemIcon = isOn
+		? require("../../assets/images/on_icon.png")
+		: require("../../assets/images/off_icon.png");
 
-          <Text style={styles.infoSystem}>Bateria:</Text>
-          <View style={styles.progressBar}>
-            <View style={[styles.progress, { width: `${batteryLevel}%` }]}>
-              <LinearGradient
-                colors={["#45A7FF", "#001268"]} // Cores do gradiente linear
-                start={{ x: 0, y: 0 }} // Ponto inicial do gradiente (canto superior esquerdo)
-                end={{ x: 1, y: 0 }} // Ponto final do gradiente (canto superior direito)
-                style={[StyleSheet.absoluteFill, styles.progress]}
-              />
-            </View>
-          </View>
-          <View style={styles.NivelDisp}>
-            <Text style={styles.Nivel}>Baixa</Text>
-            <Text style={styles.Nivel}>Média</Text>
-            <Text style={styles.Nivel}> Alta</Text>
-          </View>
-        </View>
-      </View>
+	return (
+		<SafeAreaView>
+			<View style={styles.dashboard}>
+				<Text style={styles.dashboardTitle} accessibilityRole="header">
+					Estatísticas de Uso
+				</Text>
 
-      <View style={styles.orgQuadro}>
-        <View style={styles.quadroinfo}>
-          <Text style={styles.infoSystem}>Modos de operação:</Text>
-          <View style={styles.descriptionContainer}>
-            <Text style={styles.descriptionText}>{currentMode.description}</Text>
-          </View>
-          <View style={styles.navigationContainer}>
-            <TouchableOpacity onPress={previousMode} style={styles.arrowButton}>
-              <View style={{ height: 25, transform: [{ rotate: '180deg' }], justifyContent: "center", alignItems: "center" }} >
-                <Image source={require("../../assets/images/Seta.png")} style={styles.imageSeta} />
-              </View>
-            </TouchableOpacity>
-            <View style={styles.modeText}>
-              <Text style={styles.buttonText}>{currentMode.name}</Text>
-            </View>
-            <TouchableOpacity onPress={nextMode} style={styles.arrowButton}>
-              <View style={{ height: 25 }}>
-                <Image source={require("../../assets/images/Seta.png")} style={styles.imageSeta} />
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+				<View style={styles.campos}>
+					<View style={styles.info}>
+						<Ionicons
+							name={batteryIcon}
+							size={35}
+							color="#001268"
+							accessibilityLabel="Ícone da Bateria"
+						/>
+						<Text style={styles.nivel} accessibilityRole="text">
+							{batteryLevel}%
+						</Text>
+						<Text accessibilityRole="text">Bateria</Text>
+					</View>
 
-      <View style={styles.orgQuadro}>
-        <View style={styles.quadroinfo}>
-          <Text style={styles.infoSystem}>Regular intervalo das informações faladas em segundos:</Text>
-          <TextInput
-            style={styles.input}
-            value={inputValue}
-            onChangeText={handleChange}
-            keyboardType="numeric"
-            placeholder="Digite um número inteiro"
-          />
-          <View style={{ alignItems: "center", width: "100%" }}>
-            <TouchableOpacity style={styles.buttonEnviar} onPress={handleSubmit}>
-              <Text style={styles.buttonText}>Enviar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </SafeAreaView>
-  );
+					<View style={styles.info}>
+						<Image
+							source={systemIcon}
+							style={[{width: 36, height: 35 }]}
+							accessibilityLabel={isOn ? "Sistema ligado" : "Sistema desligado"}
+						/>
+						<Text style={styles.nivel} accessibilityRole="text">
+							{isOn ? "Ligado" : "Desligado"}
+						</Text>
+						<Text accessibilityRole="text">Sistema</Text>
+					</View>
+
+					<View style={styles.info}>
+						<Image
+							source={require("../../assets/images/timer_icon.png")}
+							style={[{width: 30, height: 35 }]}
+							accessibilityLabel="Ícone do temporizador"
+						/>
+						<Text style={styles.nivel} accessibilityRole="text">
+							{intervalDash / 1000}s
+						</Text>
+						<Text style={styles.category} accessibilityRole="text">
+							Intervalo
+						</Text>
+					</View>
+				</View>
+				<View style={styles.operationMode}>
+					<Text style={styles.dashboardTitle} accessibilityRole="header">
+						Modo de Operação
+					</Text>
+					<View style={styles.operationCard}>
+						<Text style={styles.cardTitle} accessibilityRole="text">
+							{currentMode.name}
+						</Text>
+						<Text style={styles.cardText} accessibilityRole="text">
+							{currentMode.description}
+						</Text>
+					</View>
+				</View>
+			</View>
+		</SafeAreaView>
+	);
+};
+
+const boxShadow = {
+	shadowColor: "#000",
+	shadowOffset: {
+		width: 0,
+		height: 2,
+	},
+	shadowOpacity: 0.25,
+	shadowRadius: 3.84,
+	elevation: 5,
 };
 
 const styles = StyleSheet.create({
-  infoSystem: {
-    fontSize: width * 0.04,
-    marginRight: 15,
-    marginBottom: 10,
-    color: "#484848"
-  },
-  quadroinfo: {
-    width: "80%",
-    backgroundColor: "#D9D4D4",
-    borderRadius: 10,
-    padding: 20,
-    bottom: 0,
-  },
-  orgQuadro: {
-    alignItems: "center",
-    paddingBottom: 40,
-  },
-  progressBar: {
-    width: "100%", // Largura da barra de progresso
-    height: 30, // Altura da barra de progresso
-    backgroundColor: "#e0e0e0", // Cor de fundo da barra de progresso
-    borderRadius: 5, // Borda arredondada
-    overflow: "hidden", // Garante que a barra de progresso não ultrapasse os limites do contêiner
-  },
-  progress: {
-    height: "100%", // Altura da barra de progresso
-  },
-  button: {
-    width: 60,
-    height: 25,
-    borderRadius: 30,
-    backgroundColor: "#ccc",
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
-    marginRight: 10,
-  },
-  switch: {
-    width: 20,
-    height: 20,
-    borderRadius: 15,
-    backgroundColor: "#fff",
-    position: "absolute",
-    top: 2.5,
-  },
-  switchOn: {
-    right: 4,
-  },
-  switchOff: {
-    left: 4,
-  },
-  buttonOn: {
-    backgroundColor: "#001268", // Cor de fundo quando ativado para a direita
-    marginRight: 10,
-  },
-  statusSystem: {
-    flexDirection: "row",
-  },
-  NivelDisp: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  Nivel: {
-    marginTop: 8,
-    color: "#484848"
-  },
-
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 16,
-    paddingHorizontal: 8,
-    borderRadius: 10
-  },
-
-  descriptionContainer: {
-    backgroundColor: "#fff",
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  descriptionText: {
-    fontSize: 16,
-    textAlign: "center",
-    color: "#484848"
-  },
-  navigationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  arrowButton: {
-    padding: 10,
-  },
-  arrowText: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  modeText: {
-    width: "70%",
-    backgroundColor: "#BCBCBC",
-    borderRadius: 25,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 10
-  },
-  buttonEnviar: {
-    width: "80%",
-    backgroundColor: "#BCBCBC",
-    borderRadius: 25,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 10
-  },
-  buttonText: {
-    color: "#484848"
-  },
-  imageSeta: {
-    maxWidth: 20,
-    maxHeight: 20
-  }
+	dashboard: {
+		marginHorizontal: 20,
+	},
+	dashboardTitle: {
+		color: "#001268",
+		fontWeight: "800",
+		fontSize: width * 0.04,
+		paddingVertical: 15,
+	},
+	campos: {
+		display: "flex",
+		flexDirection: "row",
+		justifyContent: "space-around",
+	},
+	info: {
+		display: "flex",
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	nivel: {
+		color: "#001268",
+		fontWeight: "900",
+		fontSize: width * 0.05,
+	},
+	category: {
+		fontWeight: "light",
+	},
+	operationMode: {
+		marginTop: 20,
+	},
+	operationCard: {
+		flexDirection: "row",
+		alignItems: "center",
+		height: 80,
+		padding: 10,
+		borderRadius: 5,
+		backgroundColor: "#F6F7F8",
+		...boxShadow,
+	},
+	cardTitle: {
+		flex: 1,
+		color: "#001268",
+		fontWeight: "800",
+		fontSize: width * 0.04,
+		paddingHorizontal: 6,
+	},
+	cardText: {
+		flex: 3,
+		fontSize: width * 0.03,
+		maxWidth: "80%",
+	},
 });

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import BluetoothStateManager from "react-native-bluetooth-state-manager";
-import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation, StackActions } from "@react-navigation/native";
 import {
   Text,
@@ -14,9 +13,9 @@ import {
   BackHandler,
 } from "react-native";
 import BleManager from "react-native-ble-manager";
-const { width } = Dimensions.get("window");
-import * as Speech from 'expo-speech';
+import * as Speech from "expo-speech";
 
+const { width } = Dimensions.get("window");
 
 export default function BluetoothOffScreen() {
   const navigation = useNavigation();
@@ -35,25 +34,26 @@ export default function BluetoothOffScreen() {
     }
 
     handleAndroidPermissions();
-    speak("Habilite o Bluetooth no botão abaixo")
+    speak("Habilite o Bluetooth no botão abaixo");
   }, []);
+
   useEffect(() => {
     const checkBluetoothState = async () => {
       const state = await BluetoothStateManager.getState();
       setBluetoothState(state);
     };
-    // Ação que faz voltar a tela
+
     const backAction = () => {
       // Impede o comportamento padrão do botão de voltar
       return true;
     };
+
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       backAction
     );
 
     checkBluetoothState();
-    
 
     const subscription = BluetoothStateManager.onStateChange((state) => {
       setBluetoothState(state);
@@ -66,13 +66,11 @@ export default function BluetoothOffScreen() {
   }, []);
 
   useEffect(() => {
-  if (bluetoothState === "PoweredOn"){ 
-    navigation.dispatch(StackActions.replace('ControlScreen'));
-    
-  }
-}, [bluetoothState, navigation]);
+    if (bluetoothState === "PoweredOn") {
+      navigation.dispatch(StackActions.replace("ControlScreen"));
+    }
+  }, [bluetoothState, navigation]);
 
-  
   const handleAndroidPermissions = () => {
     if (Platform.OS === "android" && Platform.Version >= 31) {
       PermissionsAndroid.requestMultiple([
@@ -115,18 +113,18 @@ export default function BluetoothOffScreen() {
       });
     }
   };
+
   const speak = async (text: string) => {
     Speech.speak(text, {
-      language: 'pt-BR'
+      language: "pt-BR",
     });
   };
+
   const enableBluetooth = async () => {
     try {
       console.debug("Bluetooth Ativado");
       await BleManager.enableBluetooth();
-       //navigation.dispatch(
-       // StackActions.replace('ControlScreen')
-      //);
+      // navigation.dispatch(StackActions.replace('ControlScreen'));
     } catch (error) {
       console.error("Bluetooth não foi ativado", error);
     }
@@ -134,26 +132,32 @@ export default function BluetoothOffScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={["#001268", "#45A7FF"]}
-        style={styles.background}
-      />
       <View>
         <Image
-          source={require("../../assets/images/Blue.png")}
+          source={require("../../assets/images/device_icon.png")}
           style={styles.image}
           resizeMode="contain"
+          accessibilityLabel="Ícone de dispositivo Bluetooth"
+          accessibilityHint="Imagem que representa a função de habilitar o Bluetooth"
         />
       </View>
       <View style={styles.textBlue}>
-        <Text style={styles.headerText}>Ligar o Bluetooth.</Text>
+        <Text style={styles.headerText} accessibilityRole="header">
+          Ligar o Bluetooth.
+        </Text>
         <Text style={styles.text}>
           Acesse o centro de controle e ligue o Bluetooth.
         </Text>
       </View>
       <View style={styles.buttonGroup}>
-        <Pressable style={styles.scanButton} onPress={enableBluetooth}>
-          <Text style={styles.scanButtonText}>{"Habilitar Bluetooth"}</Text>
+        <Pressable
+          style={styles.scanButton}
+          onPress={enableBluetooth}
+          accessibilityLabel="Habilitar Bluetooth"
+          accessibilityHint="Toque para ativar o Bluetooth e acessar a tela de controle"
+          accessibilityRole="button"
+        >
+          <Text style={styles.scanButtonText}>Habilitar Bluetooth</Text>
         </Pressable>
       </View>
     </View>
@@ -165,26 +169,23 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    fontFamily: "Poppins",
   },
   image: {
-    width: "100%", 
+    width: "100%",
     height: undefined,
     aspectRatio: 1.3,
     marginBottom: 60,
   },
-  background: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    height: "100%",
-  },
   text: {
-    fontSize: width * 0.033, 
+    fontSize: width * 0.033,
+    fontWeight: "medium",
   },
   headerText: {
-    fontSize: width * 0.055, 
+    fontSize: width * 0.055,
     marginBottom: 10,
+    color: "#0A398A",
+    fontWeight: "medium",
   },
   textBlue: {
     width: "100%",
@@ -201,15 +202,16 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderColor: "#0a398a",
+    backgroundColor: "#0A398A",
     borderWidth: 2,
     margin: 10,
-    borderRadius: 25,
+    borderRadius: 10,
     flex: 1,
     top: 30,
   },
   scanButtonText: {
     fontSize: width * 0.04,
     letterSpacing: 0.25,
-    color: "#0a398a",
+    color: "#fff",
   },
 });

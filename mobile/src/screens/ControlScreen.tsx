@@ -4,8 +4,6 @@ import BluetoothStateManager from "react-native-bluetooth-state-manager";
 import { useNavigation, StackActions } from "@react-navigation/native";
 import { BackHandler } from "react-native";
 
-
-
 export default function ControlScreen() {
   const [bluetoothState, setBluetoothState] = useState("");
   const navigation = useNavigation();
@@ -35,16 +33,25 @@ export default function ControlScreen() {
 
   useEffect(() => {
     console.log("Verificando o estado do Bluetooth para navegação:", bluetoothState);
+
+    if (bluetoothState === "Resetting") {
+      // Aguarda o estado do Bluetooth mudar
+      const timer = setInterval(async () => {
+        const state = await BluetoothStateManager.getState();
+        console.log("Aguardando estabilização do Bluetooth:", state);
+        setBluetoothState(state);
+        if (state === "PoweredOn" || state === "PoweredOff") {
+          clearInterval(timer); // Para de verificar quando o Bluetooth estabilizar
+        }
+      }, 1000); // Verifica a cada 1 segundo
+
+      return () => clearInterval(timer);
+    }
+
     if (bluetoothState === "PoweredOn") {
-      navigation.dispatch(
-        StackActions.replace('BluetoothOn')
-      );
-     
+      navigation.dispatch(StackActions.replace('BluetoothOn'));
     } else if (bluetoothState === "PoweredOff") {
-      navigation.dispatch(
-        StackActions.replace('BluetoothOff')
-      );
-      
+      navigation.dispatch(StackActions.replace('BluetoothOff'));
     }
   }, [bluetoothState, navigation]);
 

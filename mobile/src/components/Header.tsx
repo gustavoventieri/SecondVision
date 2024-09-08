@@ -1,67 +1,99 @@
 import React from "react";
-import {
-  Text,
-  View,
-  Pressable,
-  StyleSheet,
-  Dimensions,
-} from "react-native";
+import { Text, View, Pressable, StyleSheet, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
 interface HeaderProps {
-  toggleMenu: () => void;
-  props: string;
-  sendShutdownCommand: () => void;
+	toggleMenu: () => void;
+	props: string;
+	sendShutdownCommand: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ toggleMenu, props, sendShutdownCommand }) => {
-  const navigation = useNavigation();
-  const route = useRoute();
+export const Header: React.FC<HeaderProps> = ({ toggleMenu, props, sendShutdownCommand  }) => {
+	const navigation = useNavigation();
+	const route = useRoute();
 
-  if (route.name == "BluetoothOn") {
-    return (
-      <View style={styles.headerOptions}>
-        <Pressable onPress={toggleMenu}>
-          <Ionicons name="information-circle-outline" size={35} color="white" />
-        </Pressable>
-        <Text style={styles.textFontOn}>{props}</Text>
-      </View>
-    );
-  } else {
-    return (
-      <View style={styles.headerOptions}>
-        <Pressable onPress={toggleMenu}>
-          <Ionicons name="information-circle-outline" size={35} color="white" />
-        </Pressable>
-        <Text style={styles.textFont}>{props}</Text>
-        <Pressable onPress={sendShutdownCommand}>
-          <Ionicons name="power" size={32} color="white" />
-        </Pressable>
-      </View>
-    );
-  }
+	if (route.name == "BluetoothOn") {
+		return (
+			<View style={[styles.headerOptions]}>
+				<Pressable 
+					onPress={toggleMenu}
+					style={[styles.information,  ]}
+					accessibilityLabel="Abrir menu de informações"
+					accessibilityRole="button"
+          
+				>
+					<Ionicons
+						name="information-circle-outline"
+						size={35}
+						color="#001268"
+						style={[styles.information2]}
+					/>
+				</Pressable>
+				<Text style={[styles.textFont,]}>{props}</Text>
+        <Text style={[styles.information,]}></Text>
+			</View>
+		);
+
+	}else{
+	
+		return (
+			<View style={[styles.headerOptions]}>
+				<Pressable 
+					onPress={toggleMenu}
+					style={[styles.information,  ]}
+					accessibilityLabel="Abrir menu de informações"
+					accessibilityRole="button"
+          
+				>
+					<Ionicons
+						name="information-circle-outline"
+						size={35}
+						color="#001268"
+						style={[styles.information2]}
+					/>
+				</Pressable>
+				<Text style={[styles.textFont,]}>{props}</Text>
+					<Pressable 
+					style={[styles.information3,  ]}
+					onPress={sendShutdownCommand}
+					accessibilityLabel="Desligar Sistema"
+					accessibilityRole="button">
+					<Ionicons name="power" size={32} color="#001268" />
+					</Pressable>
+			</View>
+		);}
+	
 };
 
 const styles = StyleSheet.create({
-  headerOptions: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 10,
-    top: 5,
-  },
-  textFont: {
-    fontWeight: "bold",
-    fontSize: width * 0.05,
-    color: "white",
-  },
-  textFontOn: {
-    fontWeight: "bold",
-    fontSize: width * 0.05,
-    color: "white",
-    right: width * 0.27,
-  },
+	headerOptions: {
+		flexDirection: "row",
+    	justifyContent: 'space-between',
+		alignItems: "center",
+    	paddingHorizontal: 20,
+		top: 10
+	},
+	information: {
+    	width: '25%',
+		alignSelf: "flex-start",
+	},
+	information2: {
+		alignSelf: "flex-start",
+	},
+	information3:{
+		width: '25%',
+		alignSelf: "flex-start",
+		alignItems: "flex-end"
+	},
+	textFont: {
+    	width: '49%',
+    	textAlign: 'center',
+		fontWeight: "bold",
+		fontSize: width * 0.05,
+		color: "#001268",
+	},
+
 });
