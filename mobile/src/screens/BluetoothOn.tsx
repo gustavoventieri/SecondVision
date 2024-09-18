@@ -387,7 +387,7 @@ export default function BluetoothOnScreen() {
 
 	return (
 		<View style={styles.container}>
-			<Header toggleMenu={toggleMenu} props="Meus Dispositvos" sendShutdownCommand={sendShutdownCommand} />
+			<Header toggleMenu={toggleMenu} props="Meus Dispositivos" sendShutdownCommand={sendShutdownCommand} />
 			<Devices />
 			<View />
 			<>
