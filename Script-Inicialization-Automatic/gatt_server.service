@@ -4,11 +4,12 @@ After=network.target
 
 [Service]
 ExecStart=/home/second/start_gatt_server.sh
-WorkingDirectory=/root/
+WorkingDirectory=/home/second/ServidorGatt
 StandardOutput=inherit
 StandardError=inherit
 Restart=always
-User=second
+User=root
+Group=root
 
 [Install]
 WantedBy=multi-user.target
