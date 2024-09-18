@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /root/
+cd /home/second/ServidorGatt
 
 # Ativar o ambiente virtual
 source venv/bin/activate
