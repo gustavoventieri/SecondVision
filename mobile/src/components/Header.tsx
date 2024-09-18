@@ -37,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({ toggleMenu, props, sendShutdownC
 			</View>
 		);
 
-	}else{
+	}else if (route.name == "Home"){
 	
 		return (
 			<View style={[styles.headerOptions]}>
@@ -64,7 +64,28 @@ export const Header: React.FC<HeaderProps> = ({ toggleMenu, props, sendShutdownC
 					<Ionicons name="power" size={32} color="#001268" />
 					</Pressable>
 			</View>
-		);}
+		);}else{
+			return (
+				<View style={[styles.headerOptions]}>
+					<Pressable 
+						onPress={toggleMenu}
+						style={[styles.information,  ]}
+						accessibilityLabel="Abrir menu de informações"
+						accessibilityRole="button"
+			  
+					>
+						<Ionicons
+							name="information-circle-outline"
+							size={35}
+							color="#001268"
+							style={[styles.information2]}
+						/>
+					</Pressable>
+					<Text style={[styles.textFont,]}>{props}</Text>
+					<Text style={[styles.information,]}></Text>
+				</View>
+			);
+		}
 	
 };
 

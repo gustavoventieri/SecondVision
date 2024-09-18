@@ -82,9 +82,7 @@ export default function BluetoothOffScreen() {
             "[handleAndroidPermissions] O usuário aceita permissões de tempo de execução Android 12+"
           );
         } else {
-          console.error(
-            "[handleAndroidPermissions] O usuário recusa permissões de tempo de execução Android 12+"
-          );
+          //console.error( "[handleAndroidPermissions] O usuário recusa permissões de tempo de execução Android 12+");
         }
       });
     } else if (Platform.OS === "android" && Platform.Version >= 23) {
@@ -104,9 +102,7 @@ export default function BluetoothOffScreen() {
                 "[handleAndroidPermissions] O usuário aceita permissão de execução android <12"
               );
             } else {
-              console.error(
-                "[handleAndroidPermissions] Usuário recusa permissão de execução android <12"
-              );
+              //console.error("[handleAndroidPermissions] Usuário recusa permissão de execução android <12");
             }
           });
         }

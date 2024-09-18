@@ -72,8 +72,8 @@ export default function BluetoothOnScreen() {
 							"granted"
 					) {
 						console.debug("[handleAndroidPermissions] Permissao concedida.");
-					} else {
-						console.error("[handleAndroidPermissions] Permissao negada.");
+					} else {//console.error("[handleAndroidPermissions] Permissao negada.");
+
 					}
 				});
 				PermissionsAndroid.request(
@@ -84,9 +84,7 @@ export default function BluetoothOnScreen() {
 							"[handleAndroidPermissions] Permissão de localização concedida."
 						);
 					} else {
-						console.error(
-							"[handleAndroidPermissions] Permissão de localização negada."
-						);
+						//console.error("[handleAndroidPermissions] Permissão de localização negada.");
 					}
 				});
 				console.debug("[startScan] iniciando verificação...");
@@ -118,7 +116,7 @@ export default function BluetoothOnScreen() {
 			"[handleDiscoverPeripheral] novo periférico BLE =",
 			peripheral
 		);
-		if (peripheral.id === "D8:3A:DD:D5:49:E8") {
+		if (peripheral.id === "50:2F:9B:AA:B9:27") {
 			setPeripherals((map) => {
 				return new Map(map.set(peripheral.id, peripheral));
 			});
@@ -252,9 +250,7 @@ export default function BluetoothOnScreen() {
 						"[handleAndroidPermissions] O usuário aceita permissões de tempo de execução Android 12+"
 					);
 				} else {
-					console.error(
-						"[handleAndroidPermissions] O usuário recusa permissões de tempo de execução Android 12+"
-					);
+					//console.error("[handleAndroidPermissions] O usuário recusa permissões de tempo de execução Android 12+");
 				}
 			});
 		} else if (Platform.OS === "android" && Platform.Version >= 23) {
@@ -274,9 +270,7 @@ export default function BluetoothOnScreen() {
 								"[handleAndroidPermissions] O usuário aceita permissão de execução android <12"
 							);
 						} else {
-							console.error(
-								"[handleAndroidPermissions] Usuário recusa permissão de execução android <12"
-							);
+							//console.error("[handleAndroidPermissions] Usuário recusa permissão de execução android <12");
 						}
 					});
 				}

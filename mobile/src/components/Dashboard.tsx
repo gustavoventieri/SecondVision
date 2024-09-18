@@ -85,7 +85,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 							style={[{width: 30, height: 35 }]}
 							accessibilityLabel="Ícone do temporizador"
 						/>
-						<Text style={styles.nivel} accessibilityRole="text">
+						<Text style={styles.nivel} accessibilityRole="text" accessibilityLabel={`${intervalDash / 1000} segundos`}>
 							{intervalDash / 1000}s
 						</Text>
 						<Text style={styles.category} accessibilityRole="text">

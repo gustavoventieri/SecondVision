@@ -55,7 +55,7 @@ export default function Home({ route }) {
 	);
 	const [yoloResults, setYoloResults] = useState("");
 	const [tesseractResults, setTesseractResults] = useState("");
-	const specificMacAddress = "D8:3A:DD:D5:49:E8";
+	const specificMacAddress = "50:2F:9B:AA:B9:27";
 
 	const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -74,32 +74,35 @@ export default function Home({ route }) {
 	}
 }, [route.params?.mode]);
 
-	const speakQueueRef = useRef<string[]>([]);
-	const isSpeakingRef = useRef<boolean>(false);
+const isSpeakingRef = useRef<boolean>(false);
 
-	const delay = (ms: number) =>
-		new Promise((resolve) => setTimeout(resolve, ms));
+const delay = (ms: number) =>
+	new Promise((resolve) => setTimeout(resolve, ms));
 
-	const processSpeakQueue = async () => {
-		while (speakQueueRef.current.length > 0) {
-			const text = speakQueueRef.current.shift();
-			if (text) {
-				await Speech.speak(text, { language: "pt-BR" });
-				await delay(interval);
-			}
-		}
-		isSpeakingRef.current = false;
-	};
+const processSpeakQueue = async (text: string) => {	
+	await Speech.speak(text, { language: "pt-BR" });
+	await delay(interval);
+	isSpeakingRef.current = false;
+};
 
-	const speak = (text: string) => {
-		speakQueueRef.current.push(text);
-		console.log(interval);
-
+const speak = async (text: string, numero: number) => {
+	if (numero === 1) {
 		if (!isSpeakingRef.current) {
 			isSpeakingRef.current = true;
-			processSpeakQueue();
+			await processSpeakQueue(text);
+		} else {	
+			return;
 		}
-	};
+	} else if (numero === 0) {
+		if (isSpeakingRef.current) {
+			await Speech.speak(text, { language: "pt-BR" });
+		} else {
+			isSpeakingRef.current = true;
+			await Speech.speak(text, { language: "pt-BR" });
+			isSpeakingRef.current = false;
+		}
+	}
+};
 
 	const handleDisconnectedPeripheral = (
 		event: BleDisconnectPeripheralEvent
@@ -191,13 +194,13 @@ export default function Home({ route }) {
 
 		if (data.characteristic === "12345678-1234-5678-1234-56789abcdef1") {
 			setYoloResults(dataYOLOPY);
-			console.log("YOLO Resultados:", dataYOLOPY);
+			console.log("YOLO Resultados:", dataYOLOPY);	
 		} else if (data.characteristic === "12345678-1234-5678-1234-56789abcdef2") {
 			setTesseractResults(dataYOLOPY);
 			console.log("Tesseract Resultados:", dataYOLOPY);
 		} else if (data.characteristic === "12345678-1234-5678-1234-56789abcdef4") {
+			setEstimatedDuration(estimatedTime); // Esse set precisa vir antes do setBatterylevel
 			setBatteryLevel(batteryLevel); // Atualiza o nível da bateria
-			setEstimatedDuration(estimatedTime); // Atualiza o tempo estimado de duração
 			console.log(`Nível da Bateria: ${batteryLevel}%`);
 			console.log(
 				`Tempo Estimado de Duração: ${estimatedTime.toFixed(2)} horas`
@@ -225,7 +228,7 @@ export default function Home({ route }) {
 
 	// Função para enviar o comando de desligamento
 	const sendShutdownCommand = async () => {
-		speak("Você realmente deseja desligar o dispositivo?");
+		speak("Você realmente deseja desligar o dispositivo?", 0);
 
 		Alert.alert(
 			"Confirmação de Desligamento",
@@ -235,7 +238,7 @@ export default function Home({ route }) {
 					text: "Cancelar",
 					onPress: () => {
 						console.log("Desligamento cancelado");
-						speak("Desligamento cancelado");
+						speak("Desligamento cancelado",0);
 					},
 					style: "cancel",
 				},
@@ -252,7 +255,7 @@ export default function Home({ route }) {
 										c.characteristic === "12345678-1234-5678-1234-56789abcdef3"
 									) {
 										try {
-											speak("Comando de desligamento enviado");
+											speak("Comando de desligamento enviado",0);
 											const data = [0x01]; // Comando de desligamento
 											await BleManager.write(
 												peripheralInfo.id,
@@ -272,7 +275,7 @@ export default function Home({ route }) {
 						} catch (error) {
 							console.error("Erro ao recuperar serviços", error);
 							Alert.alert("Erro", "Não foi possível recuperar os serviços");
-							speak("Não foi possível recuperar os serviços");
+							speak("Não foi possível recuperar os serviços",0);
 						}
 					},
 				},
@@ -292,9 +295,7 @@ export default function Home({ route }) {
 						"[handleAndroidPermissions] O usuário aceita permissões de tempo de execução Android 12+"
 					);
 				} else {
-					console.error(
-						"[handleAndroidPermissions] O usuário recusa permissões de tempo de execução Android 12+"
-					);
+					//console.error("[handleAndroidPermissions] O usuário recusa permissões de tempo de execução Android 12+");
 				}
 			});
 		} else if (Platform.OS === "android" && Platform.Version >= 23) {
@@ -314,9 +315,7 @@ export default function Home({ route }) {
 								"[handleAndroidPermissions] O usuário aceita permissão de execução android <12"
 							);
 						} else {
-							console.error(
-								"[handleAndroidPermissions] Usuário recusa permissão de execução android <12"
-							);
+							console.error("[handleAndroidPermissions] Usuário recusa permissão de execução android <12");
 						}
 					});
 				}
@@ -361,10 +360,10 @@ export default function Home({ route }) {
 
 	useEffect(() => {
 		if (isOn) {
-			speak("Sistema ligado e pronto para uso");
+			speak("Sistema ligado e pronto para uso",0);
 		} else if (!isOn) {
 			speak(
-				"Sistema de identificação parou de funcionar, tente reiniciar o dispositivo físico"
+				"Sistema de identificação parou de funcionar, tente reiniciar o dispositivo físico",0
 			);
 		}
 	}, [isOn]);
@@ -373,7 +372,7 @@ export default function Home({ route }) {
 		if (currentModeIndex === 0 || currentModeIndex === 2) {
 			if (yoloResults !== "none") {
 				if (yoloResults !== "") {
-					speak(`Objetos a frente: ${yoloResults}`);
+					speak(`Objetos a frente: ${yoloResults}`,1);
 				}
 			}
 		}
@@ -381,7 +380,7 @@ export default function Home({ route }) {
 	useEffect(() => {
 		if (currentModeIndex === 0 || currentModeIndex === 1) {
 			if (tesseractResults !== "") {
-				speak(`Texto identificado: ${tesseractResults}`);
+				speak(`Texto identificado: ${tesseractResults}`,1);
 			}
 		}
 	}, [tesseractResults]);
@@ -389,12 +388,12 @@ export default function Home({ route }) {
 	useEffect(() => {
 		if (currentModeIndex === 0) {
 			speak(
-				`Esse modo detecta tanto objetos possivelmente perigosos como textos estáticos.`
+				`Esse modo detecta tanto objetos possivelmente perigosos como textos estáticos.`,0
 			);
 		} else if (currentModeIndex === 1) {
-			speak(`Esse modo detecta apenas textos estáticos.`);
+			speak(`Esse modo detecta apenas textos estáticos.`,0);
 		} else if (currentModeIndex === 2) {
-			speak(`Esse modo detecta apenas objetos possivelmente perigosos.`);
+			speak(`Esse modo detecta apenas objetos possivelmente perigosos.`,0);
 		}
 	}, [currentModeIndex]);
 
@@ -405,13 +404,13 @@ export default function Home({ route }) {
 			// Se a bateria está acima de 20 e não foi notificado antes
 			if (!hasAnnouncedOnce.current) {
 				speak(
-					`Bateria a ${batteryLevel}%. Tempo estimado de uso restante: ${estimatedDuration} horas.`
+					`Bateria a ${batteryLevel}%. Tempo estimado de uso restante: ${estimatedDuration} horas.`,0
 				);
 				hasAnnouncedOnce.current = true;
 			}
 		} else {
 			speak(
-				`Bateria a ${batteryLevel}%. Tempo estimado de uso restante: ${estimatedDuration} horas. A bateria está imprópria para uso.`
+				`Bateria a ${batteryLevel}%. Tempo estimado de uso restante: ${estimatedDuration} horas. A bateria está imprópria para uso.`,0
 			);
 		}
 	}, [batteryLevel]);

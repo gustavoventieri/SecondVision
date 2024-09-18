@@ -55,9 +55,4 @@ export default function ControlScreen() {
     }
   }, [bluetoothState, navigation]);
 
-  return (
-    <View>
-      <Text>Verificando o estado do Bluetooth...</Text>
-    </View>
-  );
 }

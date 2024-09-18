@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import {
@@ -21,6 +21,7 @@ const { width } = Dimensions.get("window");
 export default function OperationMode() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const navigation = useNavigation();
+	const isFirstRender = useRef(true); // Variável para controlar a primeira renderização
 
 	const [selectedMode, setSelectedMode] = useState(0); // Armazena a escolha
 
@@ -29,9 +30,17 @@ export default function OperationMode() {
         setSelectedMode(mode);
     };
 	useEffect(() => {
-		handleSave();
+		if (isFirstRender.current) {
+			// Na primeira renderização, apenas define a flag como false
+			isFirstRender.current = false;
+		  } else {
+			// Nas renderizações subsequentes, realiza a navegação
+			handleSave();
+		  }
 	}, [selectedMode]);
+
 	const sendShutdownCommand = () => {};
+	
     const handleSave = () => {
         // Navega para a Home passando o modo selecionado
         navigation.navigate("Home", { mode: selectedMode });

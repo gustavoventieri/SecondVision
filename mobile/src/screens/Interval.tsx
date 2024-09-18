@@ -10,12 +10,14 @@ import {
 	Text,
 	Dimensions,
 	Pressable,
+	Alert
 } from "react-native";
 import { About } from "../components/About";
 import { Header } from "../components/Header";
 import { Devices } from "../components/Devices";
 
 const { width } = Dimensions.get("window");
+const MAX_INTERVAL_SECONDS = 300;
 
 export default function Interval() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -31,7 +33,22 @@ export default function Interval() {
     const handleInputChange = (value : any) => {
         // Remove caracteres não numéricos e define o estado
         const filteredValue = value.replace(/[^0-9]/g, '');
-        setInputValueInt(filteredValue);
+        
+
+		 // Converte para número inteiro para comparação
+		 const intervalInSeconds = parseInt(filteredValue, 10);
+
+		 // Verifica se o valor é maior que o limite de 5 minutos
+		 if (intervalInSeconds > MAX_INTERVAL_SECONDS) {
+			 Alert.alert(
+				 "Valor excedido",
+				 "O intervalo máximo permitido é de 5 minutos (300 segundos).",
+				 [{ text: "OK" }]
+			 );
+			 setInputValueInt(`${MAX_INTERVAL_SECONDS}`); // Define o valor máximo permitido
+		 } else {
+			 setInputValueInt(filteredValue); // Define o valor válido
+		 }
     };
 
     // Função para salvar e passar o valor convertido em milissegundos
@@ -54,7 +71,7 @@ export default function Interval() {
 
 					<Text style={styles.intervalText}>
 						Regule o intervalo entre as falas emitidas após Second Vision
-						efetuar a detecção
+						efetuar a detecção.
 					</Text>
 
 					<TextInput
