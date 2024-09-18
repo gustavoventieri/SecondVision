@@ -55,7 +55,7 @@ export default function Home({ route }) {
 	);
 	const [yoloResults, setYoloResults] = useState("");
 	const [tesseractResults, setTesseractResults] = useState("");
-	const specificMacAddress = "50:2F:9B:AA:B9:27";
+	const specificMacAddress = "D8:3A:DD:D5:49:E8";
 
 	const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   

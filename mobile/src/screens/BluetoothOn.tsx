@@ -116,7 +116,7 @@ export default function BluetoothOnScreen() {
 			"[handleDiscoverPeripheral] novo periférico BLE =",
 			peripheral
 		);
-		if (peripheral.id === "50:2F:9B:AA:B9:27") {
+		if (peripheral.id === "D8:3A:DD:D5:49:E8") {
 			setPeripherals((map) => {
 				return new Map(map.set(peripheral.id, peripheral));
 			});
@@ -344,6 +344,7 @@ export default function BluetoothOnScreen() {
 		);
 	};
 	const sendShutdownCommand = () => {};
+	
 	useEffect(() => {
 		const checkBluetoothState = async () => {
 			const state = await BluetoothStateManager.getState();
