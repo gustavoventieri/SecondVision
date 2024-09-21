@@ -25,7 +25,7 @@ export default function OperationMode() {
 
 	const [selectedMode, setSelectedMode] = useState(0); // Armazena a escolha
 
-    // Função para definir o modo e salvar a seleção
+
     const handleSelectMode = (mode: any) => {
         setSelectedMode(mode);
     };
@@ -34,7 +34,7 @@ export default function OperationMode() {
 			// Na primeira renderização, apenas define a flag como false
 			isFirstRender.current = false;
 		  } else {
-			// Nas renderizações subsequentes, realiza a navegação
+			
 			handleSave();
 		  }
 	}, [selectedMode]);

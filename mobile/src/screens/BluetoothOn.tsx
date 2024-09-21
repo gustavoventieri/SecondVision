@@ -407,7 +407,7 @@ export default function BluetoothOnScreen() {
 					{Array.from(peripherals.values()).length === 0 && (
 						<View style={styles.row}>
 							<Text style={styles.noPeripherals}>
-								Sem periféricos, pressione "Escanear" para encontrar.
+								Sem periféricos, pressione "Escanear" para encontrar ou acesse o menu de informações no canto superior esquerdo da tela para receber um tutorial de como utilizar o sistema.
 							</Text>
 						</View>
 					)}
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
 	row: {
 		flexDirection: "row",
 		alignItems: "center",
-		height: 50,
+		height: 90,
 		marginHorizontal: 10,
 		borderRadius: 5,
 		backgroundColor: "#F6F7F8",

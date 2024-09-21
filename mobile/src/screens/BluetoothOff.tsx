@@ -120,7 +120,7 @@ export default function BluetoothOffScreen() {
     try {
       console.debug("Bluetooth Ativado");
       await BleManager.enableBluetooth();
-      // navigation.dispatch(StackActions.replace('ControlScreen'));
+     
     } catch (error) {
       console.error("Bluetooth não foi ativado", error);
     }
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     marginBottom: 60,
   },
   text: {
-    fontSize: width * 0.033,
+    fontSize: width * 0.044,
     fontWeight: "medium",
   },
   headerText: {

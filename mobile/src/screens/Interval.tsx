@@ -17,7 +17,7 @@ import { Header } from "../components/Header";
 import { Devices } from "../components/Devices";
 
 const { width } = Dimensions.get("window");
-const MAX_INTERVAL_SECONDS = 300;
+const MAX_INTERVAL_SECONDS = 30;
 
 export default function Interval() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -38,16 +38,23 @@ export default function Interval() {
 		 // Converte para número inteiro para comparação
 		 const intervalInSeconds = parseInt(filteredValue, 10);
 
-		 // Verifica se o valor é maior que o limite de 5 minutos
+		 // Verifica se o valor é maior que o limite de 30 segundos
 		 if (intervalInSeconds > MAX_INTERVAL_SECONDS) {
 			 Alert.alert(
 				 "Valor excedido",
-				 "O intervalo máximo permitido é de 5 minutos (300 segundos).",
+				 "O intervalo máximo permitido é de 30 segundos.",
 				 [{ text: "OK" }]
 			 );
-			 setInputValueInt(`${MAX_INTERVAL_SECONDS}`); // Define o valor máximo permitido
-		 } else {
-			 setInputValueInt(filteredValue); // Define o valor válido
+			 setInputValueInt(`${MAX_INTERVAL_SECONDS}`); 
+		 } else if (intervalInSeconds < 5) {
+			Alert.alert(
+				"Valor mínimo",
+				"O intervalo mínimo permitido é de 5 segundos.",
+				[{ text: "OK" }]
+			);
+			setInputValueInt(`5`); 
+		}else {
+			 setInputValueInt(filteredValue); 
 		 }
     };
 

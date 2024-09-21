@@ -62,14 +62,14 @@ export default function Home({ route }) {
   const [interval, setInterval] = useState(5000);
   useEffect(() => {
     if (route.params?.interval) {
-      setInterval(route.params.interval); // Atualiza o intervalo com o valor recebido
+      setInterval(route.params.interval); 
       console.log(interval)
     }
   }, [route.params?.interval]);
 
   useEffect(() => {
 	if (route.params?.mode !== undefined) {
-		// Atualiza o estado com o modo selecionado que veio da outra tela
+	
 		setCurrentModeIndex(route.params.mode);
 	}
 }, [route.params?.mode]);
