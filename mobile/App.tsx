@@ -8,6 +8,7 @@ import BluetoothOffScreen from "./src/screens/BluetoothOff";
 import BluetoothOnScreen from "./src/screens/BluetoothOn";
 import IntervalScreen from "./src/screens/Interval";
 import OperationModeScreen from "./src/screens/OperationMode";
+import TermsScreen from "./src/screens/TermsScreen";
 import { Ionicons } from "@expo/vector-icons";
 
 const Tab = createBottomTabNavigator();
@@ -68,6 +69,11 @@ function NonTabStackNavigator() {
       <Stack.Screen
         name="BluetoothOn"
         component={BluetoothOnScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Terms"
+        component={TermsScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>
