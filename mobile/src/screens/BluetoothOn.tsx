@@ -13,7 +13,7 @@ import {
 	Text,
 	Pressable,
 	FlatList,
-	Vibration
+	Vibration,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BluetoothStateManager from "react-native-bluetooth-state-manager";
@@ -61,51 +61,59 @@ export default function BluetoothOnScreen() {
 	const startScan = () => {
 		if (!isScanning) {
 			setPeripherals(new Map<Peripheral["id"], Peripheral>());
-			setSearchPerformed(true); 
+			setSearchPerformed(true);
 
-			PermissionsAndroid.requestMultiple([
-				PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-				PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-			]).then((result) => {
-				if (
-					result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] === "granted" &&
-					result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] === "granted"
-				) {
-					console.debug("[handleAndroidPermissions] Permissao concedida.");
-				}
-			});
-
-			PermissionsAndroid.request(
-				PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-			).then((result) => {
-				if (result === "granted") {
-					console.debug(
-						"[handleAndroidPermissions] Permissão de localização concedida."
-					);
-				}
-			});
-
-			console.debug("[startScan] iniciando verificação...");
-			setIsScanning(true);
-			BleManager.scan(SERVICE_UUIDS, SECONDS_TO_SCAN_FOR, ALLOW_DUPLICATES, {
-				matchMode: BleScanMatchMode.Sticky,
-				scanMode: BleScanMode.LowLatency,
-				callbackType: BleScanCallbackType.AllMatches,
-			})
-				.then(() => {
-					console.debug(
-						"[startScan] promess de digitalização retornada com sucesso."
-					);
-					// Verifica se não há periféricos
-					if (Array.from(peripherals.values()).length === 0) {
-						Vibration.vibrate(5000);
-						
-						speak("Sem periféricos encontrados.");
+			try {
+				PermissionsAndroid.requestMultiple([
+					PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+					PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+				]).then((result) => {
+					if (
+						result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] ===
+							"granted" &&
+						result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] ===
+							"granted"
+					) {
+						console.debug("[handleAndroidPermissions] Permissao concedida.");
 					}
-				})
-				.catch((err: any) => {
-					console.error("[startScan] verificação ble retornou com erro", err);
 				});
+
+				PermissionsAndroid.request(
+					PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+				).then((result) => {
+					if (result === "granted") {
+						console.debug(
+							"[handleAndroidPermissions] Permissão de localização concedida."
+						);
+					}
+				});
+
+				console.debug("[startScan] iniciando verificação...");
+				setIsScanning(true);
+				BleManager.scan(SERVICE_UUIDS, SECONDS_TO_SCAN_FOR, ALLOW_DUPLICATES, {
+					matchMode: BleScanMatchMode.Sticky,
+					scanMode: BleScanMode.LowLatency,
+					callbackType: BleScanCallbackType.AllMatches,
+				})
+					.then(() => {
+						console.debug(
+							"[startScan] promess de digitalização retornada com sucesso."
+						);
+						// Verifica se não há periféricos
+						if (Array.from(peripherals.values()).length === 0) {
+							Vibration.vibrate(500); // Vibra por 500 milissegundos
+							speak("Sem periféricos encontrados.");
+						}
+					})
+					.catch((err: any) => {
+						console.error("[startScan] verificação ble retornou com erro", err);
+					});
+			} catch (error) {
+				console.error(
+					"[startScan] erro de verificação impossível gerado",
+					error
+				);
+			}
 		}
 	};
 
