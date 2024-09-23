@@ -13,6 +13,7 @@ import {
 	Text,
 	Pressable,
 	FlatList,
+	Vibration
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import BluetoothStateManager from "react-native-bluetooth-state-manager";
@@ -42,6 +43,7 @@ export default function BluetoothOnScreen() {
 	const [bluetoothState, setBluetoothState] = useState("PoweredOn");
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [BackColor, setBackColor] = useState("#FFFFFF");
+	const [searchPerformed, setSearchPerformed] = useState(false);
 
 	//Lógica do scan
 	const [isScanning, setIsScanning] = useState(false);
@@ -59,55 +61,51 @@ export default function BluetoothOnScreen() {
 	const startScan = () => {
 		if (!isScanning) {
 			setPeripherals(new Map<Peripheral["id"], Peripheral>());
+			setSearchPerformed(true); 
 
-			try {
-				PermissionsAndroid.requestMultiple([
-					PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-					PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-				]).then((result) => {
-					if (
-						result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] ===
-							"granted" &&
-						result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] ===
-							"granted"
-					) {
-						console.debug("[handleAndroidPermissions] Permissao concedida.");
-					} else {//console.error("[handleAndroidPermissions] Permissao negada.");
+			PermissionsAndroid.requestMultiple([
+				PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+				PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+			]).then((result) => {
+				if (
+					result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] === "granted" &&
+					result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] === "granted"
+				) {
+					console.debug("[handleAndroidPermissions] Permissao concedida.");
+				}
+			});
 
+			PermissionsAndroid.request(
+				PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+			).then((result) => {
+				if (result === "granted") {
+					console.debug(
+						"[handleAndroidPermissions] Permissão de localização concedida."
+					);
+				}
+			});
+
+			console.debug("[startScan] iniciando verificação...");
+			setIsScanning(true);
+			BleManager.scan(SERVICE_UUIDS, SECONDS_TO_SCAN_FOR, ALLOW_DUPLICATES, {
+				matchMode: BleScanMatchMode.Sticky,
+				scanMode: BleScanMode.LowLatency,
+				callbackType: BleScanCallbackType.AllMatches,
+			})
+				.then(() => {
+					console.debug(
+						"[startScan] promess de digitalização retornada com sucesso."
+					);
+					// Verifica se não há periféricos
+					if (Array.from(peripherals.values()).length === 0) {
+						Vibration.vibrate(5000);
+						
+						speak("Sem periféricos encontrados.");
 					}
-				});
-				PermissionsAndroid.request(
-					PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-				).then((result) => {
-					if (result === "granted") {
-						console.debug(
-							"[handleAndroidPermissions] Permissão de localização concedida."
-						);
-					} else {
-						//console.error("[handleAndroidPermissions] Permissão de localização negada.");
-					}
-				});
-				console.debug("[startScan] iniciando verificação...");
-				setIsScanning(true);
-				BleManager.scan(SERVICE_UUIDS, SECONDS_TO_SCAN_FOR, ALLOW_DUPLICATES, {
-					matchMode: BleScanMatchMode.Sticky,
-					scanMode: BleScanMode.LowLatency,
-					callbackType: BleScanCallbackType.AllMatches,
 				})
-					.then(() => {
-						console.debug(
-							"[startScan] promess de digitalização retornada com sucesso."
-						);
-					})
-					.catch((err: any) => {
-						console.error("[startScan] verificação ble retornou com erro", err);
-					});
-			} catch (error) {
-				console.error(
-					"[startScan] erro de verificação impossível gerado",
-					error
-				);
-			}
+				.catch((err: any) => {
+					console.error("[startScan] verificação ble retornou com erro", err);
+				});
 		}
 	};
 
@@ -221,8 +219,7 @@ export default function BluetoothOnScreen() {
 					return map;
 				});
 
-				navigation.navigate('TabNavigator', { screen: 'Home' });
-
+				navigation.navigate("TabNavigator", { screen: "Home" });
 			}
 		} catch (error) {
 			console.error(
@@ -344,7 +341,7 @@ export default function BluetoothOnScreen() {
 		);
 	};
 	const sendShutdownCommand = () => {};
-	
+
 	useEffect(() => {
 		const checkBluetoothState = async () => {
 			const state = await BluetoothStateManager.getState();
@@ -382,7 +379,11 @@ export default function BluetoothOnScreen() {
 
 	return (
 		<View style={styles.container}>
-			<Header toggleMenu={toggleMenu} props="Meus Dispositivos" sendShutdownCommand={sendShutdownCommand} />
+			<Header
+				toggleMenu={toggleMenu}
+				props="Meus Dispositivos"
+				sendShutdownCommand={sendShutdownCommand}
+			/>
 			<Devices />
 			<View />
 			<>
@@ -404,10 +405,12 @@ export default function BluetoothOnScreen() {
 						</Pressable>
 					</View>
 
-					{Array.from(peripherals.values()).length === 0 && (
+					{searchPerformed && Array.from(peripherals.values()).length === 0 && (
 						<View style={styles.row}>
 							<Text style={styles.noPeripherals}>
-								Sem periféricos, pressione "Escanear" para encontrar ou acesse o menu de informações no canto superior esquerdo da tela para receber um tutorial de como utilizar o sistema.
+								Sem periféricos, pressione "Escanear" para encontrar ou acesse o
+								menu de informações no canto superior esquerdo da tela para
+								receber um tutorial de como utilizar o sistema.
 							</Text>
 						</View>
 					)}
