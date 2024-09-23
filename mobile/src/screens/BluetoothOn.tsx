@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
 		...boxShadow,
 	},
 	noPeripherals: {
-		margin: 10,
+		margin: 5,
 		textAlign: "center",
 	},
 	buttonGroup: {
