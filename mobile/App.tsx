@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useState } from 'react'
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -10,6 +11,7 @@ import IntervalScreen from "./src/screens/Interval";
 import OperationModeScreen from "./src/screens/OperationMode";
 import TermsScreen from "./src/screens/TermsScreen";
 import { Ionicons } from "@expo/vector-icons";
+import { Splash } from "./src/screens/Splash";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -100,9 +102,13 @@ function AppNavigator() {
 
 // Componente principal
 export default function App() {
+  const [splashComplete, setSplashComplete] = useState(false)
+
   return (
-    <NavigationContainer>
-      <AppNavigator />
-    </NavigationContainer>
+    splashComplete
+      ? <NavigationContainer>
+        <AppNavigator />
+      </NavigationContainer>
+      : <Splash onComplete={setSplashComplete} />
   );
 }
