@@ -14,7 +14,12 @@ import { About } from "../components/About";
 import { Header } from "../components/Header";
 import { Devices } from "../components/Devices";
 import { Dashboard } from "../components/Dashboard";
-import { useNavigation, StackActions, useRoute } from "@react-navigation/native";
+import {
+	useNavigation,
+	StackActions,
+	useRoute,
+	RouteProp,
+} from "@react-navigation/native";
 import * as Speech from "expo-speech";
 import BleManager, {
 	Peripheral,
@@ -23,6 +28,11 @@ import BleManager, {
 	BleManagerDidUpdateValueForCharacteristicEvent,
 } from "react-native-ble-manager";
 import { Buffer } from "buffer";
+
+type HomeScreenRouteProp = RouteProp<
+	{ Home: { mode: number; interval: number } },
+	"Home"
+>;
 
 const loadFonts = async () => {
 	await Font.loadAsync({
@@ -40,11 +50,10 @@ declare module "react-native-ble-manager" {
 	}
 }
 
-export default function Home({ route }) {
+export default function Home({ route }: { route: HomeScreenRouteProp }) {
 	const navigation = useNavigation();
 	const [isOn, setIsOn] = useState(true);
 	const [StatusText, setStatusText] = useState("Desligado");
-  
 
 	const [batteryLevel, setBatteryLevel] = useState(0);
 	const hasAnnouncedOnce = useRef(false);
@@ -58,51 +67,50 @@ export default function Home({ route }) {
 	const specificMacAddress = "D8:3A:DD:D5:49:E8";
 
 	const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  const [interval, setInterval] = useState(5000);
-  useEffect(() => {
-    if (route.params?.interval) {
-      setInterval(route.params.interval); 
-      console.log(interval)
-    }
-  }, [route.params?.interval]);
 
-  useEffect(() => {
-	if (route.params?.mode !== undefined) {
-	
-		setCurrentModeIndex(route.params.mode);
-	}
-}, [route.params?.mode]);
-
-const isSpeakingRef = useRef<boolean>(false);
-
-const delay = (ms: number) =>
-	new Promise((resolve) => setTimeout(resolve, ms));
-
-const processSpeakQueue = async (text: string) => {	
-	await Speech.speak(text, { language: "pt-BR" });
-	await delay(interval);
-	isSpeakingRef.current = false;
-};
-
-const speak = async (text: string, numero: number) => {
-	if (numero === 1) {
-		if (!isSpeakingRef.current) {
-			isSpeakingRef.current = true;
-			await processSpeakQueue(text);
-		} else {	
-			return;
+	const [interval, setInterval] = useState(5000);
+	useEffect(() => {
+		if (route.params?.interval) {
+			setInterval(route.params.interval);
+			console.log(interval);
 		}
-	} else if (numero === 0) {
-		if (isSpeakingRef.current) {
-			await Speech.speak(text, { language: "pt-BR" });
-		} else {
-			isSpeakingRef.current = true;
-			await Speech.speak(text, { language: "pt-BR" });
-			isSpeakingRef.current = false;
+	}, [route.params?.interval]);
+
+	useEffect(() => {
+		if (route.params?.mode !== undefined) {
+			setCurrentModeIndex(route.params.mode);
 		}
-	}
-};
+	}, [route.params?.mode]);
+
+	const isSpeakingRef = useRef<boolean>(false);
+
+	const delay = (ms: number) =>
+		new Promise((resolve) => setTimeout(resolve, ms));
+
+	const processSpeakQueue = async (text: string) => {
+		await Speech.speak(text, { language: "pt-BR" });
+		await delay(interval);
+		isSpeakingRef.current = false;
+	};
+
+	const speak = async (text: string, numero: number) => {
+		if (numero === 1) {
+			if (!isSpeakingRef.current) {
+				isSpeakingRef.current = true;
+				await processSpeakQueue(text);
+			} else {
+				return;
+			}
+		} else if (numero === 0) {
+			if (isSpeakingRef.current) {
+				await Speech.speak(text, { language: "pt-BR" });
+			} else {
+				isSpeakingRef.current = true;
+				await Speech.speak(text, { language: "pt-BR" });
+				isSpeakingRef.current = false;
+			}
+		}
+	};
 
 	const handleDisconnectedPeripheral = (
 		event: BleDisconnectPeripheralEvent
@@ -120,7 +128,7 @@ const speak = async (text: string, numero: number) => {
 		});
 
 		if (event.peripheral === specificMacAddress) {
-			navigation.navigate("BluetoothOn");
+			navigation.navigate("BluetoothOn" as never);
 		}
 	};
 
@@ -194,7 +202,7 @@ const speak = async (text: string, numero: number) => {
 
 		if (data.characteristic === "12345678-1234-5678-1234-56789abcdef1") {
 			setYoloResults(dataYOLOPY);
-			console.log("YOLO Resultados:", dataYOLOPY);	
+			console.log("YOLO Resultados:", dataYOLOPY);
 		} else if (data.characteristic === "12345678-1234-5678-1234-56789abcdef2") {
 			setTesseractResults(dataYOLOPY);
 			console.log("Tesseract Resultados:", dataYOLOPY);
@@ -238,7 +246,7 @@ const speak = async (text: string, numero: number) => {
 					text: "Cancelar",
 					onPress: () => {
 						console.log("Desligamento cancelado");
-						speak("Desligamento cancelado",0);
+						speak("Desligamento cancelado", 0);
 					},
 					style: "cancel",
 				},
@@ -255,7 +263,7 @@ const speak = async (text: string, numero: number) => {
 										c.characteristic === "12345678-1234-5678-1234-56789abcdef3"
 									) {
 										try {
-											speak("Comando de desligamento enviado",0);
+											speak("Comando de desligamento enviado", 0);
 											const data = [0x01]; // Comando de desligamento
 											await BleManager.write(
 												peripheralInfo.id,
@@ -275,7 +283,7 @@ const speak = async (text: string, numero: number) => {
 						} catch (error) {
 							console.error("Erro ao recuperar serviços", error);
 							Alert.alert("Erro", "Não foi possível recuperar os serviços");
-							speak("Não foi possível recuperar os serviços",0);
+							speak("Não foi possível recuperar os serviços", 0);
 						}
 					},
 				},
@@ -315,7 +323,9 @@ const speak = async (text: string, numero: number) => {
 								"[handleAndroidPermissions] O usuário aceita permissão de execução android <12"
 							);
 						} else {
-							console.error("[handleAndroidPermissions] Usuário recusa permissão de execução android <12");
+							console.error(
+								"[handleAndroidPermissions] Usuário recusa permissão de execução android <12"
+							);
 						}
 					});
 				}
@@ -360,10 +370,11 @@ const speak = async (text: string, numero: number) => {
 
 	useEffect(() => {
 		if (isOn) {
-			speak("Sistema ligado e pronto para uso",0);
+			speak("Sistema ligado e pronto para uso", 0);
 		} else if (!isOn) {
 			speak(
-				"Sistema de identificação parou de funcionar, tente reiniciar o dispositivo físico",0
+				"Sistema de identificação parou de funcionar, tente reiniciar o dispositivo físico",
+				0
 			);
 		}
 	}, [isOn]);
@@ -372,7 +383,7 @@ const speak = async (text: string, numero: number) => {
 		if (currentModeIndex === 0 || currentModeIndex === 2) {
 			if (yoloResults !== "none") {
 				if (yoloResults !== "") {
-					speak(`Objetos a frente: ${yoloResults}`,1);
+					speak(`Objetos a frente: ${yoloResults}`, 1);
 				}
 			}
 		}
@@ -380,7 +391,7 @@ const speak = async (text: string, numero: number) => {
 	useEffect(() => {
 		if (currentModeIndex === 0 || currentModeIndex === 1) {
 			if (tesseractResults !== "") {
-				speak(`Texto identificado: ${tesseractResults}`,1);
+				speak(`Texto identificado: ${tesseractResults}`, 1);
 			}
 		}
 	}, [tesseractResults]);
@@ -388,12 +399,13 @@ const speak = async (text: string, numero: number) => {
 	useEffect(() => {
 		if (currentModeIndex === 0) {
 			speak(
-				`Esse modo detecta tanto objetos possivelmente perigosos como textos estáticos.`,0
+				`Esse modo detecta tanto objetos possivelmente perigosos como textos estáticos.`,
+				0
 			);
 		} else if (currentModeIndex === 1) {
-			speak(`Esse modo detecta apenas textos estáticos.`,0);
+			speak(`Esse modo detecta apenas textos estáticos.`, 0);
 		} else if (currentModeIndex === 2) {
-			speak(`Esse modo detecta apenas objetos possivelmente perigosos.`,0);
+			speak(`Esse modo detecta apenas objetos possivelmente perigosos.`, 0);
 		}
 	}, [currentModeIndex]);
 
@@ -404,13 +416,15 @@ const speak = async (text: string, numero: number) => {
 			// Se a bateria está acima de 20 e não foi notificado antes
 			if (!hasAnnouncedOnce.current) {
 				speak(
-					`Bateria a ${batteryLevel}%. Tempo estimado de uso restante: ${estimatedDuration} horas.`,0
+					`Bateria a ${batteryLevel}%. Tempo estimado de uso restante: ${estimatedDuration} horas.`,
+					0
 				);
 				hasAnnouncedOnce.current = true;
 			}
 		} else {
 			speak(
-				`Bateria a ${batteryLevel}%. Tempo estimado de uso restante: ${estimatedDuration} horas. A bateria está imprópria para uso.`,0
+				`Bateria a ${batteryLevel}%. Tempo estimado de uso restante: ${estimatedDuration} horas. A bateria está imprópria para uso.`,
+				0
 			);
 		}
 	}, [batteryLevel]);
@@ -430,7 +444,6 @@ const speak = async (text: string, numero: number) => {
 	if (!fontsLoaded) {
 		return null;
 	}
-
 
 	const modes = [
 		{

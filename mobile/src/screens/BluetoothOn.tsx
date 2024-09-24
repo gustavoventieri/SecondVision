@@ -221,7 +221,8 @@ export default function BluetoothOnScreen() {
 					return map;
 				});
 
-				navigation.navigate('TabNavigator', { screen: 'Home' });
+				navigation.navigate("Home" as never);
+
 
 			}
 		} catch (error) {
