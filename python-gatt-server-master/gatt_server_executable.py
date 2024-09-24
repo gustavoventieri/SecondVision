@@ -6,6 +6,7 @@ import dbus.service
 import array
 import sys
 import gi
+
 try:
     from gi.repository import GLib
 except ImportError:
@@ -14,6 +15,7 @@ import advertising
 import gatt_server
 import argparse
 import threading
+from gatt_server import INA219  # Esta importação pode ser removida se não for usada diretamente
 
 # Importações adicionais para YOLO e PyTesseract
 import cv2
@@ -24,6 +26,7 @@ from collections import deque
 from spellchecker import SpellChecker
 
 spell = SpellChecker(language='pt')
+
 
 class ObjectTracker:
     def __init__(self, window_size=5):
@@ -48,7 +51,8 @@ class ObjectTracker:
             current_frame = self.history[-1]
             for obj in current_frame:
                 if self.should_announce(obj):
-                    if obj not in self.last_announcement or (current_time - self.last_announcement[obj]) > self.announcement_interval:
+                    if obj not in self.last_announcement or (
+                            current_time - self.last_announcement[obj]) > self.announcement_interval:
                         announcements.append(obj)
                         self.last_announcement[obj] = current_time
 
@@ -66,10 +70,17 @@ def process_frame(frame, yolo_characteristic, tesseract_characteristic):
     # YOLO processing
     yolo_model = YOLO('yolov8n.pt')
     tracker = ObjectTracker()
-    allowed_objects = ['person', 'chair']
+    allowed_objects = ['person', 'bicycle', 'car', 'motorbike', 'bus', 'train', 'truck', 'traffic light', 'stop sign']
     translation_dict = {
         'person': 'pessoa',
-        'chair': 'cadeira',
+        'bicycle': 'bicicleta',
+        'car': 'carro',
+        'motorbike': 'moto',
+        'bus': 'ônibus',
+        'train': 'trem',
+        'truck': 'caminhão',
+        'traffic light': 'semáforo',
+        'stop sign': 'placa de pare'
     }
 
     results = yolo_model.predict(source=frame)
@@ -119,6 +130,12 @@ def camera_capture_loop(yolo_characteristic, tesseract_characteristic):
     cap.release()
 
 
+def battery_monitor_loop(battery_characteristic):
+    while True:
+        battery_characteristic.send_battery_update()
+        time.sleep(60)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', '--adapter-name', type=str, help='Adapter name', default='')
@@ -131,18 +148,30 @@ def main():
 
     advertising.advertising_main(mainloop, bus, adapter_name)
     app = gatt_server.gatt_server_main(mainloop, bus, adapter_name)
+
+    if not app:
+        print("Aplicação GATT não foi inicializada corretamente devido a erro no INA219.")
+        sys.exit(1)
+
     yolo_characteristic = app.services[0].characteristics[0]
     tesseract_characteristic = app.services[0].characteristics[1]
+    battery_characteristic = app.services[0].characteristics[3]
 
     # Start camera capture loop in a separate thread
     camera_thread = threading.Thread(target=camera_capture_loop, args=(yolo_characteristic, tesseract_characteristic))
     camera_thread.start()
+
+    # Start battery monitor loop in a separate thread
+    battery_thread = threading.Thread(target=battery_monitor_loop, args=(battery_characteristic,))
+    battery_thread.start()
 
     try:
         mainloop.run()
     except KeyboardInterrupt:
         print("Program terminated")
         camera_thread.join()
+        battery_thread.join()
+
 
 if __name__ == '__main__':
     main()
