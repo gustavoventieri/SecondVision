@@ -15,12 +15,16 @@ import {
 import { About } from "../components/About";
 import { Header } from "../components/Header";
 import { Devices } from "../components/Devices";
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs'; 
+import { TabParamList } from '../navigation/TabParamList';
+
+type TabNavigatorProp = BottomTabNavigationProp<TabParamList, 'Home'>; // Definir a tipagem de navegação correta
 
 const { width } = Dimensions.get("window");
 
 export default function OperationMode() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
-	const navigation = useNavigation();
+	const navigation = useNavigation<TabNavigatorProp>();
 	const isFirstRender = useRef(true); // Variável para controlar a primeira renderização
 
 	const [selectedMode, setSelectedMode] = useState(0); // Armazena a escolha
@@ -43,7 +47,7 @@ export default function OperationMode() {
 	
     const handleSave = () => {
         // Navega para a Home passando o modo selecionado
-        navigation.navigate("Home", { mode: selectedMode });
+		navigation.navigate("Home", { mode: selectedMode});
     };
     
 	const toggleMenu = () => {

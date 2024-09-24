@@ -29,10 +29,21 @@ import BleManager, {
 } from "react-native-ble-manager";
 import { Buffer } from "buffer";
 
-type HomeScreenRouteProp = RouteProp<
-	{ Home: { mode: number; interval: number } },
-	"Home"
+// Importar o tipo do RootStackParamList
+import { RootStackParamList } from "../navigation/RootStackParamList";
+import { TabParamList } from "../navigation/TabParamList";
+import { CompositeNavigationProp } from "@react-navigation/native";
+import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
+// Definir o tipo de navegação para o HomeScreen
+type HomeScreenNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<TabParamList, "Home">,
+  NativeStackNavigationProp<RootStackParamList>
 >;
+
+// Definir o tipo da rota para o HomeScreen
+type HomeScreenRouteProp = RouteProp<TabParamList, "Home">;
 
 const loadFonts = async () => {
 	await Font.loadAsync({
@@ -50,8 +61,9 @@ declare module "react-native-ble-manager" {
 	}
 }
 
-export default function Home({ route }: { route: HomeScreenRouteProp }) {
-	const navigation = useNavigation();
+export default function Home() {
+	const navigation = useNavigation<HomeScreenNavigationProp>();
+	const route = useRoute<HomeScreenRouteProp>();
 	const [isOn, setIsOn] = useState(true);
 	const [StatusText, setStatusText] = useState("Desligado");
 

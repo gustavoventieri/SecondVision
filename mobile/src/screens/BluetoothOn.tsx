@@ -33,12 +33,14 @@ declare module "react-native-ble-manager" {
 		connecting?: boolean;
 	}
 }
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/RootStackParamList';
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 export default function BluetoothOnScreen() {
-	const navigation = useNavigation();
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const [bluetoothState, setBluetoothState] = useState("PoweredOn");
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [BackColor, setBackColor] = useState("#FFFFFF");
@@ -221,7 +223,8 @@ export default function BluetoothOnScreen() {
 					return map;
 				});
 
-				navigation.navigate("Home" as never);
+				navigation.navigate("TabNavigator");
+
 
 
 			}

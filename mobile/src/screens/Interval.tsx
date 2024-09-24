@@ -15,13 +15,23 @@ import {
 import { About } from "../components/About";
 import { Header } from "../components/Header";
 import { Devices } from "../components/Devices";
+import { CompositeNavigationProp } from "@react-navigation/native";
+import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import { RootStackParamList } from "../navigation/RootStackParamList";
+import { TabParamList } from "../navigation/TabParamList";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 const { width } = Dimensions.get("window");
 const MAX_INTERVAL_SECONDS = 30;
 
+// Definir o tipo de navegação para o componente
+type SomeComponentNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<TabParamList, "Home">,
+  NativeStackNavigationProp<RootStackParamList>
+>;
+
 export default function Interval() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
-	const navigation = useNavigation();
     const route = useRoute();
 	const toggleMenu = () => {
 		setIsMenuOpen(!isMenuOpen);
@@ -58,13 +68,18 @@ export default function Interval() {
 		 }
     };
 
+	const navigation = useNavigation<SomeComponentNavigationProp>();
+
     // Função para salvar e passar o valor convertido em milissegundos
     const handleSave = () => {
         const intervalInSeconds = parseInt(inputValueInt, 10);
         const intervalInMilliseconds = intervalInSeconds * 1000; // Converte segundos para milissegundos
 
         // Navega para a tela Home com o intervalo em milissegundos
-        navigation.navigate("Home", { interval: intervalInMilliseconds });
+		navigation.navigate("Home", {
+			interval: intervalInMilliseconds, // Intervalo em milissegundos
+		  });
+        //navigation.navigate("Home", { interval: intervalInMilliseconds });
     };
 
 	return (
