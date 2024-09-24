@@ -72,5 +72,7 @@ export default function ControlScreen() {
     checkTermsAcceptance(); // Verifica a aceitação dos termos
 
   }, [bluetoothState, navigation]);
-
+  return(
+    <View></View>
+  )
 }

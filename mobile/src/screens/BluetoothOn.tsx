@@ -34,12 +34,14 @@ declare module "react-native-ble-manager" {
 		connecting?: boolean;
 	}
 }
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/RootStackParamList';
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 export default function BluetoothOnScreen() {
-	const navigation = useNavigation();
+	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const [bluetoothState, setBluetoothState] = useState("PoweredOn");
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [BackColor, setBackColor] = useState("#FFFFFF");
@@ -227,7 +229,10 @@ export default function BluetoothOnScreen() {
 					return map;
 				});
 
-				navigation.navigate("TabNavigator", { screen: "Home" });
+				navigation.navigate("TabNavigator");
+
+
+
 			}
 		} catch (error) {
 			console.error(
@@ -290,6 +295,9 @@ export default function BluetoothOnScreen() {
 
 	const handleStopScan = () => {
 		setIsScanning(false);
+		if (peripherals.size === 0) { // Verifica se o Map está vazio
+			speak(`Nenhum periférico encontrado, em caso de dúvida acesse o tutorial no menu de informações do cabeçalho.`);
+		}
 		console.debug("[handleStopScan] Escaneador parou.");
 	};
 

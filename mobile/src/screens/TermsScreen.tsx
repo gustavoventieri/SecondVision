@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, View, Text, StyleSheet, Pressable, Alert, BackHandler   } from 'react-native';
 import { StackActions } from "@react-navigation/native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ExitApp from 'react-native-exit-app';
 
 const TermsScreen = ({ navigation }: any) => {
 
@@ -22,7 +23,7 @@ const TermsScreen = ({ navigation }: any) => {
             {
               text: "Sim",
               onPress: () => {
-                BackHandler.exitApp();
+                  ExitApp.exitApp();
               },
             },
           ]

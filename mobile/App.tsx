@@ -13,8 +13,11 @@ import TermsScreen from "./src/screens/TermsScreen";
 import { Ionicons } from "@expo/vector-icons";
 import { Splash } from "./src/screens/Splash";
 
-const Tab = createBottomTabNavigator();
-const Stack = createNativeStackNavigator();
+import { RootStackParamList } from "./src/navigation/RootStackParamList";
+import { TabParamList } from "./src/navigation/TabParamList";
+
+const Tab = createBottomTabNavigator<TabParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Tab Navigator para telas com o footer
 function TabNavigator() {
