@@ -289,6 +289,9 @@ export default function BluetoothOnScreen() {
 
 	const handleStopScan = () => {
 		setIsScanning(false);
+		if (peripherals.size === 0) { // Verifica se o Map está vazio
+			speak(`Nenhum periférico encontrado.`);
+		}
 		console.debug("[handleStopScan] Escaneador parou.");
 	};
 

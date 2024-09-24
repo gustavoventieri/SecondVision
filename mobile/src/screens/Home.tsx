@@ -140,7 +140,7 @@ export default function Home() {
 		});
 
 		if (event.peripheral === specificMacAddress) {
-			navigation.navigate("BluetoothOn" as never);
+			navigation.navigate("ControlScreen");
 		}
 	};
 
@@ -192,7 +192,9 @@ export default function Home() {
 						(c.service === "12345678-1234-5678-1234-56789abcdef0" &&
 							c.characteristic === "12345678-1234-5678-1234-56789abcdef1") ||
 						(c.service === "12345678-1234-5678-1234-56789abcdef0" &&
-							c.characteristic === "12345678-1234-5678-1234-56789abcdef2")
+							c.characteristic === "12345678-1234-5678-1234-56789abcdef2") ||
+							(c.service === "12345678-1234-5678-1234-56789abcdef0" &&
+								c.characteristic === "12345678-1234-5678-1234-56789abcdef4")
 					)
 						await BleManager.startNotification(
 							peripheralInfo.id,
@@ -209,28 +211,46 @@ export default function Home() {
 	const handleUpdateValueForCharacteristic = (
 		data: BleManagerDidUpdateValueForCharacteristicEvent
 	) => {
-		const dataYOLOPY = Buffer.from(data.value).toString("utf-8");
-		const [batteryLevel, estimatedTime] = dataYOLOPY.split(",").map(Number);
+		const dataString = Buffer.from(data.value).toString("utf-8");
 
-		if (data.characteristic === "12345678-1234-5678-1234-56789abcdef1") {
-			setYoloResults(dataYOLOPY);
-			console.log("YOLO Resultados:", dataYOLOPY);
-		} else if (data.characteristic === "12345678-1234-5678-1234-56789abcdef2") {
-			setTesseractResults(dataYOLOPY);
-			console.log("Tesseract Resultados:", dataYOLOPY);
-		} else if (data.characteristic === "12345678-1234-5678-1234-56789abcdef4") {
-			setEstimatedDuration(estimatedTime); // Esse set precisa vir antes do setBatterylevel
-			setBatteryLevel(batteryLevel); // Atualiza o nível da bateria
-			console.log(`Nível da Bateria: ${batteryLevel}%`);
-			console.log(
-				`Tempo Estimado de Duração: ${estimatedTime.toFixed(2)} horas`
-			);
+	if (data.characteristic === "12345678-1234-5678-1234-56789abcdef1") {
+		// Característica de YOLO
+		setYoloResults(dataString);
+		console.log("YOLO Resultados:", dataString);
+
+	} else if (data.characteristic === "12345678-1234-5678-1234-56789abcdef2") {
+		// Característica de Tesseract
+		setTesseractResults(dataString);
+		console.log("Tesseract Resultados:", dataString);
+
+	} else if (data.characteristic === "12345678-1234-5678-1234-56789abcdef4") {
+		// Característica de Bateria e Tempo Estimado
+		console.log("AQUIII")
+		console.log(dataString)
+		// Divida o valor recebido em dois: nível da bateria e tempo estimado
+		const [batteryLevelStr, estimatedTimeStr] = dataString.split(',');
+
+		// Converta para números
+		const batteryLevel = parseInt(batteryLevelStr, 10); // Nível de bateria em %
+		const estimatedTime = parseFloat(estimatedTimeStr); // Tempo estimado em horas
+
+		if (!isNaN(estimatedTime)) {
+			setEstimatedDuration(estimatedTime); 
+			console.log(`Tempo Estimado de Duração: ${estimatedTime} horas`);
+		} else {
+			console.log(`Valor de tempo estimado não recebido corretamente: ${estimatedTimeStr}`);
 		}
+		setBatteryLevel(batteryLevel); 
+		console.log(`Nível da Bateria: ${batteryLevel}%`);
 
-		console.log(`[Notificacao] ${dataYOLOPY}`);
+		
+		
+	}
+
+		console.log(`[Notificacao] ${dataString}`);
 
 		console.debug(
-			`[handleUpdateValueForCharacteristic] recebendo data de '${data.peripheral}' com characteristic='${data.characteristic}' e value='${dataYOLOPY}'`
+			`[handleUpdateValueForCharacteristic] recebendo data de '${data.peripheral}' com characteristic='${data.characteristic}' e value='${dataString}'`
 		);
 
 		if (updateTimeoutRef.current) {
