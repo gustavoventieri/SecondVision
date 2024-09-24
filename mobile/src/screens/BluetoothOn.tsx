@@ -101,11 +101,6 @@ export default function BluetoothOnScreen() {
 						console.debug(
 							"[startScan] promess de digitalização retornada com sucesso."
 						);
-						// Verifica se não há periféricos
-						if (Array.from(peripherals.values()).length === 0) {
-							Vibration.vibrate(500); // Vibra por 500 milissegundos
-							speak("Sem periféricos encontrados.");
-						}
 					})
 					.catch((err: any) => {
 						console.error("[startScan] verificação ble retornou com erro", err);
