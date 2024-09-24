@@ -6,6 +6,10 @@
       }
     },
     "owner": "nickolss",
-    "slug": "second-vision"
+    "slug": "second-vision",
+    "version": "1.0.1",  
+    "android": {
+      "versionCode": 2 
+    }
   }
 }
