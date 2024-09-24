@@ -1,0 +1,10 @@
+# Python dependencies
+dbus-python
+smbus
+pygobject
+opencv-python-headless
+ultralytics
+tesseract-ocr-por
+pytesseract
+pyspellchecker
+
