@@ -3,10 +3,13 @@ import dbus.exceptions
 import dbus.mainloop.glib
 import dbus.service
 import functools
-
+import smbus  # Use smbus2 para evitar problemas
+import time
+import threading
 import exceptions
 import adapters
 import os
+import uuid  # Import para gerar UUIDs únicos
 
 BLUEZ_SERVICE_NAME = 'org.bluez'
 LE_ADVERTISING_MANAGER_IFACE = 'org.bluez.LEAdvertisingManager1'
@@ -19,12 +22,147 @@ GATT_SERVICE_IFACE = 'org.bluez.GattService1'
 GATT_CHRC_IFACE = 'org.bluez.GattCharacteristic1'
 GATT_DESC_IFACE = 'org.bluez.GattDescriptor1'
 
+# UPS controller
+# Config Register (R/W)
+_REG_CONFIG = 0x00
+# SHUNT VOLTAGE REGISTER (R)
+_REG_SHUNTVOLTAGE = 0x01
+
+# BUS VOLTAGE REGISTER (R)
+_REG_BUSVOLTAGE = 0x02
+
+# POWER REGISTER (R)
+_REG_POWER = 0x03
+
+# CURRENT REGISTER (R)
+_REG_CURRENT = 0x04
+
+# CALIBRATION REGISTER (R/W)
+_REG_CALIBRATION = 0x05
+
+
+class BusVoltageRange:
+    """Constants for ``bus_voltage_range``"""
+    RANGE_16V = 0x00  # set bus voltage range to 16V
+    RANGE_32V = 0x01  # set bus voltage range to 32V (default)
+
+
+class Gain:
+    """Constants for ``gain``"""
+    DIV_1_40MV = 0x00  # shunt prog. gain set to  1, 40 mV range
+    DIV_2_80MV = 0x01  # shunt prog. gain set to /2, 80 mV range
+    DIV_4_160MV = 0x02  # shunt prog. gain set to /4, 160 mV range
+    DIV_8_320MV = 0x03  # shunt prog. gain set to /8, 320 mV range
+
+
+class ADCResolution:
+    """Constants for ``bus_adc_resolution`` or ``shunt_adc_resolution``"""
+    ADCRES_9BIT_1S = 0x00  # 9bit,   1 sample,     84us
+    ADCRES_10BIT_1S = 0x01  # 10bit,   1 sample,    148us
+    ADCRES_11BIT_1S = 0x02  # 11 bit,  1 sample,    276us
+    ADCRES_12BIT_1S = 0x03  # 12 bit,  1 sample,    532us
+    ADCRES_12BIT_2S = 0x09  # 12 bit,  2 samples,  1.06ms
+    ADCRES_12BIT_4S = 0x0A  # 12 bit,  4 samples,  2.13ms
+    ADCRES_12BIT_8S = 0x0B  # 12bit,   8 samples,  4.26ms
+    ADCRES_12BIT_16S = 0x0C  # 12bit,  16 samples,  8.51ms
+    ADCRES_12BIT_32S = 0x0D  # 12bit,  32 samples, 17.02ms
+    ADCRES_12BIT_64S = 0x0E  # 12bit,  64 samples, 34.05ms
+    ADCRES_12BIT_128S = 0x0F  # 12bit, 128 samples, 68.10ms
+
+
+class Mode:
+    """Constants for ``mode``"""
+    POWERDOW = 0x00  # power down
+    SVOLT_TRIGGERED = 0x01  # shunt voltage triggered
+    BVOLT_TRIGGERED = 0x02  # bus voltage triggered
+    SANDBVOLT_TRIGGERED = 0x03  # shunt and bus voltage triggered
+    ADCOFF = 0x04  # ADC off
+    SVOLT_CONTINUOUS = 0x05  # shunt voltage continuous
+    BVOLT_CONTINUOUS = 0x06  # bus voltage continuous
+    SANDBVOLT_CONTINUOUS = 0x07  # shunt and bus voltage continuous
+
+
+class INA219:
+    def __init__(self, i2c_bus=1, addr=0x40):
+        self.bus = smbus.SMBus(i2c_bus)
+        self.addr = addr
+
+        # Set chip to known config values to start
+        self._cal_value = 0
+        self._current_lsb = 0
+        self._power_lsb = 0
+        self.set_calibration_32V_2A()
+
+    def read(self, address):
+        data = self.bus.read_i2c_block_data(self.addr, address, 2)
+        return ((data[0] << 8) + data[1])
+
+    def write(self, address, data):
+        temp = [0, 0]
+        temp[1] = data & 0xFF
+        temp[0] = (data & 0xFF00) >> 8
+        self.bus.write_i2c_block_data(self.addr, address, temp)
+
+    def set_calibration_32V_2A(self):
+        """Configures INA219 to measure up to 32V and 2A"""
+        self._current_lsb = 0.1  # 100uA per bit
+        self._cal_value = 4096
+        self._power_lsb = 0.002  # 2mW per bit
+
+        self.write(_REG_CALIBRATION, self._cal_value)
+
+        self.bus_voltage_range = BusVoltageRange.RANGE_32V
+        self.gain = Gain.DIV_8_320MV
+        self.bus_adc_resolution = ADCResolution.ADCRES_12BIT_32S
+        self.shunt_adc_resolution = ADCResolution.ADCRES_12BIT_32S
+        self.mode = Mode.SANDBVOLT_CONTINUOUS
+
+        self.config = (self.bus_voltage_range << 13) | \
+                      (self.gain << 11) | \
+                      (self.bus_adc_resolution << 7) | \
+                      (self.shunt_adc_resolution << 3) | \
+                      self.mode
+
+        self.write(_REG_CONFIG, self.config)
+
+    def getShuntVoltage_mV(self):
+        self.write(_REG_CALIBRATION, self._cal_value)
+        value = self.read(_REG_SHUNTVOLTAGE)
+        if value > 32767:
+            value -= 65535
+        return value * 0.01
+
+    def getBusVoltage_V(self):
+        self.write(_REG_CALIBRATION, self._cal_value)
+        self.read(_REG_BUSVOLTAGE)
+        return (self.read(_REG_BUSVOLTAGE) >> 3) * 0.004
+
+    def getCurrent_mA(self):
+        value = self.read(_REG_CURRENT)
+        if value > 32767:
+            value -= 65535
+        return value * self._current_lsb * -1
+
+    def getPower_W(self):
+        self.write(_REG_CALIBRATION, self._cal_value)
+        value = self.read(_REG_POWER)
+        if value > 32767:
+            value -= 65535
+        return value * self._power_lsb
+
+
+try:
+    ina219 = INA219(addr=0x42)
+except Exception as e:
+    print(f"Erro ao inicializar INA219: {e}")
+
+
 class Application(dbus.service.Object):
     def __init__(self, bus):
         self.path = '/'
         self.services = []
         dbus.service.Object.__init__(self, bus, self.path)
-        self.add_service(TestService(bus, 0))
+        self.add_service(TestService(bus, 0, ina219))
 
     def get_path(self):
         return dbus.ObjectPath(self.path)
@@ -46,12 +184,15 @@ class Application(dbus.service.Object):
                     response[desc.get_path()] = desc.get_properties()
         return response
 
+
 class Service(dbus.service.Object):
     PATH_BASE = '/org/bluez/example/service'
-    def __init__(self, bus, index, uuid, primary):
-        self.path = self.PATH_BASE + str(index)
+
+    def __init__(self, bus, index, uuid_str, primary):
+        unique_id = str(uuid.uuid4())[:8]  # Gera um identificador único de 8 caracteres
+        self.path = f"{self.PATH_BASE}{index}_{unique_id}"
         self.bus = bus
-        self.uuid = uuid
+        self.uuid = uuid_str
         self.primary = primary
         self.characteristics = []
         dbus.service.Object.__init__(self, bus, self.path)
@@ -89,6 +230,7 @@ class Service(dbus.service.Object):
         if interface != GATT_SERVICE_IFACE:
             raise exceptions.InvalidArgsException()
         return self.get_properties()[GATT_SERVICE_IFACE]
+
 
 class Characteristic(dbus.service.Object):
     def __init__(self, bus, index, uuid, flags, service):
@@ -161,7 +303,7 @@ class Characteristic(dbus.service.Object):
                          signature='sa{sv}as')
     def PropertiesChanged(self, interface, changed, invalidated):
         pass
-        
+
     def send_update(self, value):
         self.set_value(value)
         if self.notifying:
@@ -172,90 +314,98 @@ class Characteristic(dbus.service.Object):
         if self.notifying:
             self.PropertiesChanged(GATT_CHRC_IFACE, {'Value': self.value}, [])
 
+
 class TestService(Service):
     TEST_SVC_UUID = '12345678-1234-5678-1234-56789abcdef0'
-    def __init__(self, bus, index):
+
+    def __init__(self, bus, index, ina219):
         Service.__init__(self, bus, index, self.TEST_SVC_UUID, True)
         self.add_characteristic(YoloCharacteristic(bus, 0, self))
         self.add_characteristic(TesseractCharacteristic(bus, 1, self))
         self.add_characteristic(ShutdownCharacteristic(bus, 2, self))
-       #self.add_characteristic(BatteryLevelCharacteristic(bus, 3, self))
+        self.add_characteristic(BatteryCharacteristic(bus, 3, self, ina219))
+
 
 class YoloCharacteristic(Characteristic):
     YOLO_CHRC_UUID = '12345678-1234-5678-1234-56789abcdef1'
+
     def __init__(self, bus, index, service):
         Characteristic.__init__(
             self, bus, index,
             self.YOLO_CHRC_UUID,
             ['read', 'notify'],
             service)
-        
-        #self.value = [dbus.Byte(ord(c)) for c in 'Start']
+
+        # self.value = [dbus.Byte(ord(c)) for c in 'Start']
+
 
 class TesseractCharacteristic(Characteristic):
     TESSERACT_CHRC_UUID = '12345678-1234-5678-1234-56789abcdef2'
+
     def __init__(self, bus, index, service):
         Characteristic.__init__(
             self, bus, index,
             self.TESSERACT_CHRC_UUID,
             ['read', 'notify'],
             service)
-        
-        #self.value = [dbus.Byte(ord(c)) for c in 'Start']
 
-"""
+        # self.value = [dbus.Byte(ord(c)) for c in 'Start']
+
+
 class BatteryCharacteristic(Characteristic):
     BATTERY_CHRC_UUID = '12345678-1234-5678-1234-56789abcdef4'
-  
-    def __init__(self, bus, index, service):
+
+    def __init__(self, bus, index, service, ina219):
         Characteristic.__init__(
             self, bus, index,
             self.BATTERY_CHRC_UUID,
             ['read', 'notify'],
             service)
-        self.capacity = 5000  # Capacidade da bateria em mAh (exemplo)
-        self.voltage = 3.7    # Voltagem da bateria em V (exemplo)
-        self.power_consumption = 500  # Consumo de energia em mA (exemplo)
-        self.value = self.get_battery_level()
+        self.ina219 = ina219
+        self.value = self.get_battery_info()
 
-    def get_battery_level(self):
-        # Exemplo com valor fixo ou valor lido do sistema
-        battery_level_str = os.popen("vcgencmd measure_volts").readline().strip()
-        battery_level = int(battery_level_str.split('=')[1].replace('V', ''))  # Convertendo o valor para mV
-        battery_level_percentage = (battery_level - 3400) / (4200 - 3400) * 100  # Simulação de percentual
-        return [dbus.Byte(int(battery_level_percentage))]  # Simula um percentual de carga de bateria
+    def get_battery_info(self):
+        bus_voltage = self.ina219.getBusVoltage_V()
+        current = self.ina219.getCurrent_mA() / 1000
+        p = (bus_voltage - 6) / 2.4 * 100
+        p = max(0, min(100, p))
+        estimated_time = self.calculate_remaining_time()
+        return p, estimated_time
 
     def calculate_remaining_time(self):
-        # Obtenha o nível da bateria em porcentagem
-        battery_level_percentage = self.get_battery_level()[0]
-        # Calcular a energia restante em Wh
-        energy_remaining = (battery_level_percentage / 100.0) * self.capacity * self.voltage  # em Wh
-        # Estimar o tempo restante em horas
-        estimated_time = energy_remaining / (self.power_consumption * self.voltage / 1000.0)  # em horas
-        return estimated_time
+        bus_voltage = self.ina219.getBusVoltage_V()
+        current = self.ina219.getCurrent_mA() / 1000
+        capacity = 5200
+        if current == 0:
+            return float('inf')
+        remaining_time = (capacity / 1000) / current
+        return remaining_time
 
     @dbus.service.method(GATT_CHRC_IFACE,
                          in_signature='a{sv}',
                          out_signature='ay')
     def ReadValue(self, options):
-        battery_level = self.get_battery_level()[0]
-        estimated_time = self.calculate_remaining_time()
-        # Combine o nível da bateria e o tempo estimado em um array
+        battery_level, estimated_time = self.get_battery_info()
         print(f'Reading battery level: {battery_level}%, Estimated time remaining: {estimated_time:.2f} hours')
         # Encode o nível da bateria e o tempo estimado como uma string e, em seguida, como bytes
         battery_info_str = f'{battery_level},{estimated_time:.2f}'
+        #print(f"Battery info string: {battery_info_str}")
         self.value = [dbus.Byte(ord(c)) for c in battery_info_str]
         return self.value
 
     def send_battery_update(self):
         # Envie o nível da bateria e o tempo estimado de duração
-        self.value = self.get_battery_level()
+        battery_level, estimated_time = self.get_battery_info()
+        print(f'Reading battery level: {battery_level}%, Estimated time remaining: {estimated_time:.2f} hours')
+        # Encode o nível da bateria e o tempo estimado como uma string e, em seguida, como bytes
+        battery_info_str = f'{battery_level},{estimated_time:.2f}'
+        self.value = [dbus.Byte(ord(c)) for c in battery_info_str]
         if self.notifying:
             self.PropertiesChanged(GATT_CHRC_IFACE, {'Value': self.value}, [])
-"""
+
 
 class ShutdownCharacteristic(Characteristic):
-    SHUTDOWN_CHRC_UUID = '12345678-1234-5678-1234-56789abcdef3'  
+    SHUTDOWN_CHRC_UUID = '12345678-1234-5678-1234-56789abcdef3'
 
     def __init__(self, bus, index, service):
         Characteristic.__init__(
@@ -276,23 +426,15 @@ class ShutdownCharacteristic(Characteristic):
         # Desliga o sistema operacional
         os.system('sudo shutdown now')
 
-"""
-def battery_monitor_loop(battery_characteristic):
-    while True:
-        battery_characteristic.update_battery_level()
-        time.sleep(60)  # Atualizar a cada minuto
-
-battery_characteristic = app.services[0].characteristics[3]
-battery_thread = threading.Thread(target=battery_monitor_loop, args=(battery_characteristic,))
-battery_thread.start()
-"""
 
 def register_app_cb():
     print('GATT application registered')
 
+
 def register_app_error_cb(mainloop, error):
     print('Failed to register application: ' + str(error))
     mainloop.quit()
+
 
 def gatt_server_main(mainloop, bus, adapter_name):
     adapter = adapters.find_adapter(bus, GATT_MANAGER_IFACE, adapter_name)
@@ -301,7 +443,16 @@ def gatt_server_main(mainloop, bus, adapter_name):
     service_manager = dbus.Interface(
         bus.get_object(BLUEZ_SERVICE_NAME, adapter),
         GATT_MANAGER_IFACE)
+
+    try:
+        ina219 = INA219(addr=0x42)
+    except Exception as e:
+        print(f"Erro ao inicializar INA219: {e}")
+        return None
+
     app = Application(bus)
+
+    app.add_service(TestService(bus, 0, ina219))
     print('Registering GATT application...')
     service_manager.RegisterApplication(app.get_path(), {},
                                         reply_handler=register_app_cb,
