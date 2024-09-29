@@ -1,5 +1,10 @@
 {
   "expo": {
+    "splash": {
+      "image": "./assets/images/fundoexpo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"  
+    },
     "extra": {
       "eas": {
         "projectId": "b583c543-171f-4def-8241-e5fd57f75e4b"

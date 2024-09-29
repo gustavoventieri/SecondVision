@@ -37,7 +37,7 @@ export default function Interval() {
 		setIsMenuOpen(!isMenuOpen);
 	};
 	const sendShutdownCommand = () => {};
-    const [inputValueInt, setInputValueInt] = useState("5");
+    const [inputValueInt, setInputValueInt] = useState("0");
 
     // Função para validar e definir o valor do input
     const handleInputChange = (value : any) => {
@@ -56,14 +56,7 @@ export default function Interval() {
 				 [{ text: "OK" }]
 			 );
 			 setInputValueInt(`${MAX_INTERVAL_SECONDS}`); 
-		 } else if (intervalInSeconds < 5) {
-			Alert.alert(
-				"Valor mínimo",
-				"O intervalo mínimo permitido é de 5 segundos.",
-				[{ text: "OK" }]
-			);
-			setInputValueInt(`5`); 
-		}else {
+		 }else {
 			 setInputValueInt(filteredValue); 
 		 }
     };

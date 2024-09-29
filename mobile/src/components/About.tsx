@@ -40,7 +40,7 @@ export const About: React.FC<AboutProps> = ({ visible, onClose }) => {
 
 	  ];
 
-	  const renderItem = ({ item }) => (
+	  const renderItem = ({ item }: any) => (
 		<View style={styles.itemContainerFlat}>
 		  <Text style={styles.bullet}>{'\u2022'}</Text>
 		  <Text style={styles.itemText}>{item.texto}</Text>

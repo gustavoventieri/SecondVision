@@ -27,7 +27,6 @@ import BleManager, {
 	BleDisconnectPeripheralEvent,
 	BleManagerDidUpdateValueForCharacteristicEvent,
 } from "react-native-ble-manager";
-import { Buffer } from "buffer";
 
 // Importar o tipo do RootStackParamList
 import { RootStackParamList } from "../navigation/RootStackParamList";
@@ -80,7 +79,7 @@ export default function Home() {
 
 	const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-	const [interval, setInterval] = useState(5000);
+	const [interval, setInterval] = useState(0);
 	useEffect(() => {
 		if (route.params?.interval) {
 			setInterval(route.params.interval);
@@ -211,7 +210,8 @@ export default function Home() {
 	const handleUpdateValueForCharacteristic = (
 		data: BleManagerDidUpdateValueForCharacteristicEvent
 	) => {
-		const dataString = Buffer.from(data.value).toString("utf-8");
+
+		const dataString = String.fromCharCode(...data.value);
 
 	if (data.characteristic === "12345678-1234-5678-1234-56789abcdef1") {
 		// Característica de YOLO
@@ -225,7 +225,6 @@ export default function Home() {
 
 	} else if (data.characteristic === "12345678-1234-5678-1234-56789abcdef4") {
 		// Característica de Bateria e Tempo Estimado
-		console.log("AQUIII")
 		console.log(dataString)
 		// Divida o valor recebido em dois: nível da bateria e tempo estimado
 		const [batteryLevelStr, estimatedTimeStr] = dataString.split(',');
@@ -287,7 +286,7 @@ export default function Home() {
 					onPress: async () => {
 						try {
 							let services = await retrieveServices();
-
+							speak("Comando de desligamento enviado", 0);
 							for (let peripheralInfo of services) {
 								for (let c of peripheralInfo.characteristics || []) {
 									if (
@@ -295,7 +294,7 @@ export default function Home() {
 										c.characteristic === "12345678-1234-5678-1234-56789abcdef3"
 									) {
 										try {
-											speak("Comando de desligamento enviado", 0);
+											
 											const data = [0x01]; // Comando de desligamento
 											await BleManager.write(
 												peripheralInfo.id,
@@ -312,6 +311,7 @@ export default function Home() {
 									}
 								}
 							}
+							
 						} catch (error) {
 							console.error("Erro ao recuperar serviços", error);
 							Alert.alert("Erro", "Não foi possível recuperar os serviços");

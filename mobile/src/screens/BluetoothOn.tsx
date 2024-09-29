@@ -44,14 +44,14 @@ export default function BluetoothOnScreen() {
 	const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 	const [bluetoothState, setBluetoothState] = useState("PoweredOn");
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
-	const [BackColor, setBackColor] = useState("#FFFFFF");
+	const [BackColor, setBackColor] = useState("#F6F7F8");
 	const [searchPerformed, setSearchPerformed] = useState(false);
 
 	//Lógica do scan
 	const [isScanning, setIsScanning] = useState(false);
-	const [peripherals, setPeripherals] = useState(
-		new Map<Peripheral["id"], Peripheral>()
-	);
+	const [isScanningM, setIsScanningM] = useState(true);
+	const [ControlnoPeripheral, setControlnoPeripheral] = useState(false);
+	const [peripherals, setPeripherals] = useState(new Map<Peripheral["id"], Peripheral>());
 	const SECONDS_TO_SCAN_FOR = 5;
 	const SERVICE_UUIDS: string[] = [];
 	const ALLOW_DUPLICATES = true;
@@ -64,6 +64,7 @@ export default function BluetoothOnScreen() {
 		if (!isScanning) {
 			setPeripherals(new Map<Peripheral["id"], Peripheral>());
 			setSearchPerformed(true);
+			setControlnoPeripheral(false);
 
 			try {
 				PermissionsAndroid.requestMultiple([
@@ -92,6 +93,7 @@ export default function BluetoothOnScreen() {
 
 				console.debug("[startScan] iniciando verificação...");
 				setIsScanning(true);
+				setIsScanningM(true)
 				BleManager.scan(SERVICE_UUIDS, SECONDS_TO_SCAN_FOR, ALLOW_DUPLICATES, {
 					matchMode: BleScanMatchMode.Sticky,
 					scanMode: BleScanMode.LowLatency,
@@ -123,6 +125,8 @@ export default function BluetoothOnScreen() {
 			setPeripherals((map) => {
 				return new Map(map.set(peripheral.id, peripheral));
 			});
+			setControlnoPeripheral(true)
+			console.log(ControlnoPeripheral)
 		}
 	};
 
@@ -130,7 +134,7 @@ export default function BluetoothOnScreen() {
 		if (peripheral && peripheral.connected) {
 			try {
 				await BleManager.disconnect(peripheral.id);
-				setBackColor("#FFFFFF");
+				setBackColor("#F6F7F8");
 			} catch (error) {
 				console.error(
 					`[togglePeripheralConnection][${peripheral.id}] erro ao tentar desconectar o dispositivo.`,
@@ -224,6 +228,7 @@ export default function BluetoothOnScreen() {
 					return map;
 				});
 
+				setPeripherals(new Map<Peripheral["id"], Peripheral>());
 				navigation.navigate("TabNavigator");
 
 
@@ -290,13 +295,12 @@ export default function BluetoothOnScreen() {
 
 	const handleStopScan = () => {
 		setIsScanning(false);
-		if (peripherals.size === 0) { // Verifica se o Map está vazio
-			speak(`Nenhum periférico encontrado, em caso de dúvida acesse o tutorial no menu de informações do cabeçalho.`);
-		}
-		console.debug("[handleStopScan] Escaneador parou.");
+		setIsScanningM(false)
 	};
+	
 
 	useEffect(() => {
+		setPeripherals(new Map<Peripheral["id"], Peripheral>());
 		try {
 			BleManager.start({ showAlert: false })
 				.then(() => console.debug("BleManager iniciado."))
@@ -333,7 +337,7 @@ export default function BluetoothOnScreen() {
 	}, []);
 
 	const renderItem = ({ item }: { item: Peripheral }) => {
-		item.connected ? setBackColor("#45A7FF") : setBackColor("#FFFFFF");
+		item.connected ? setBackColor("#45A7FF") : setBackColor("#F6F7F8");
 		const backgroundColor = BackColor;
 
 		return (
@@ -354,6 +358,7 @@ export default function BluetoothOnScreen() {
 	const sendShutdownCommand = () => {};
 
 	useEffect(() => {
+		setPeripherals(new Map<Peripheral["id"], Peripheral>());
 		const checkBluetoothState = async () => {
 			const state = await BluetoothStateManager.getState();
 			setBluetoothState(state);
@@ -387,6 +392,17 @@ export default function BluetoothOnScreen() {
 			navigation.dispatch(StackActions.replace("ControlScreen"));
 		}
 	}, [bluetoothState, navigation]);
+
+	useEffect(() => {
+		if (!isScanningM) {
+			if (!ControlnoPeripheral) {
+				Vibration.vibrate(500); // Vibra por 500 milissegundos
+				speak("Nenhum periférico encontrado, em caso de dúvida acesse o tutorial no menu de informações do cabeçalho.");
+			} else {
+				console.debug("[useEffect] Periférico encontrado.");
+			}
+		}
+	}, [isScanningM]);
 
 	return (
 		<View style={styles.container}>
