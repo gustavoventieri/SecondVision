@@ -15,6 +15,7 @@ import {
 	FlatList,
 	Vibration,
 } from "react-native";
+import { Alert } from 'react-native';
 import { Ionicons } from "@expo/vector-icons";
 import BluetoothStateManager from "react-native-bluetooth-state-manager";
 import { About } from "../components/About";
@@ -174,7 +175,18 @@ export default function BluetoothOnScreen() {
 
 				await sleep(900);
 
-				const peripheralData = await BleManager.retrieveServices(peripheral.id);
+				const retrieveServicesWithTimeout = (peripheralId: string, timeout: number) => {
+					return Promise.race([
+					  BleManager.retrieveServices(peripheralId) as any,
+					  new Promise((_, reject) =>
+						setTimeout(() => reject(new Error("Timeout retrieving services")), timeout)
+					  )
+					]);
+				  };
+
+				//const peripheralData = await BleManager.retrieveServices(peripheral.id);
+				try {
+				const peripheralData = await retrieveServicesWithTimeout(peripheral.id, 20000);
 				console.debug(
 					`[connectPeripheral][${peripheral.id}] serviços periféricos recuperados`,
 					peripheralData
@@ -230,7 +242,17 @@ export default function BluetoothOnScreen() {
 
 				setPeripherals(new Map<Peripheral["id"], Peripheral>());
 				navigation.navigate("TabNavigator");
+			} catch (error) {
+				speak(`Falha ao recuperar os serviços`);
+				speak(`Falha ao recuperar os serviços do periférico: Isso ocorre por uma limitação de Hardware do BLE do seu dispositivo.`);
+				Alert.alert(
+					
+					"Falha ao recuperar os serviços", 
+					"Falha ao recuperar os serviços do periférico: Isso ocorre por uma limitação de Hardware do BLE do seu dispositivo.", 
+					[{ text: "OK" }] 
+				  );
 
+			}
 
 
 			}
@@ -344,6 +366,11 @@ export default function BluetoothOnScreen() {
 			<TouchableHighlight
 				underlayColor="#0082FC"
 				onPress={() => togglePeripheralConnection(item)}
+				accessible
+				accessibilityLabel={
+					"Clique para conectar ao SecondVision."
+				}
+				
 			>
 				<View style={[styles.row, { backgroundColor }]}>
 					<Ionicons name="bluetooth-outline" size={30} color={"#0A398A"} />

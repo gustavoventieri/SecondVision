@@ -7,10 +7,10 @@
     },
     "extra": {
       "eas": {
-        "projectId": "b583c543-171f-4def-8241-e5fd57f75e4b"
+        "projectId": "cbd938e0-ff98-4f6c-9294-a0a74d834fbd"
       }
     },
-    "owner": "nickolss",
+    "owner": "tiago369",
     "slug": "second-vision",
     "version": "1.0.1",  
     "android": {
