@@ -34,6 +34,7 @@ class Advertisement(dbus.service.Object):
     def get_properties(self):
         properties = dict()
         properties['Type'] = self.ad_type
+        properties['LocalName'] = 'SecondVision'
         if self.service_uuids is not None:
             properties['ServiceUUIDs'] = dbus.Array(self.service_uuids,
                                                     signature='s')
