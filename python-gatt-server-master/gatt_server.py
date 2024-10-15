@@ -366,19 +366,18 @@ class BatteryCharacteristic(Characteristic):
 
     def get_battery_info(self):
         bus_voltage = self.ina219.getBusVoltage_V()
-        current = self.ina219.getCurrent_mA() / 1000
+        current = self.ina219.getCurrent_mA()
         p = (bus_voltage - 6) / 2.4 * 100
         p = max(0, min(100, p))
-        estimated_time = self.calculate_remaining_time()
+        estimated_time = self.calculate_remaining_time(p, current)
         return p, estimated_time
 
-    def calculate_remaining_time(self):
-        bus_voltage = self.ina219.getBusVoltage_V()
-        current = self.ina219.getCurrent_mA() / 1000
+    def calculate_remaining_time(self, percentage, current):
         capacity = 5200
+        remaining_capacity_mAh = (percentage / 100) * capacity
         if current == 0:
             return float('inf')
-        remaining_time = (capacity / 1000) / current
+        remaining_time = remaining_capacity_mAh / current
         return remaining_time
 
     @dbus.service.method(GATT_CHRC_IFACE,
