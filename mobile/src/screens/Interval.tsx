@@ -43,7 +43,6 @@ export default function Interval() {
     const handleInputChange = (value : any) => {
         // Remove caracteres não numéricos e define o estado
         const filteredValue = value.replace(/[^0-9]/g, '');
-        
 
 		 // Converte para número inteiro para comparação
 		 const intervalInSeconds = parseInt(filteredValue, 10);
@@ -82,7 +81,7 @@ export default function Interval() {
 				<Devices />
 
 				<View style={styles.interval}>
-					<Text style={styles.intervalTitle}>Estatísticas de Uso</Text>
+					<Text style={styles.intervalTitle}>Intervalo entre falas:</Text>
 
 					<Text style={styles.intervalText}>
 						Regule o intervalo entre as falas emitidas após Second Vision

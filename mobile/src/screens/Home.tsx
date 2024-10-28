@@ -81,7 +81,7 @@ export default function Home() {
 
 	const [interval, setInterval] = useState(0);
 	useEffect(() => {
-		if (route.params?.interval) {
+		if (route.params?.interval !== undefined) {
 			setInterval(route.params.interval);
 			console.log(interval);
 		}
