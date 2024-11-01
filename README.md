@@ -32,7 +32,6 @@ Aqui estão alguns documentos construídos ao decorrer do trabalho:
 * Monografia
 * Diagrama de Casos de Uso
 * Diagrama de Máquina-Estado
-* Diagrama de Classe
 * Diagrama de Sequência
 * Diagrama de Atividade
 * Wireframes
