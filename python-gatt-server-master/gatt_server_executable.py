@@ -70,17 +70,18 @@ def process_frame(frame, yolo_characteristic, tesseract_characteristic):
     # YOLO processing
     yolo_model = YOLO('yolov8n.pt')
     tracker = ObjectTracker()
-    allowed_objects = ['person', 'bicycle', 'car', 'motorbike', 'bus', 'train', 'truck', 'traffic light', 'stop sign']
+    allowed_objects = ['person', 'bicycle', 'car', 'motorcycle', 'bus', 'train', 'truck', 'traffic light', 'stop sign', 'fire hydrant']
     translation_dict = {
         'person': 'pessoa',
         'bicycle': 'bicicleta',
         'car': 'carro',
-        'motorbike': 'moto',
+        'motorcycle': 'moto',
         'bus': 'ônibus',
         'train': 'trem',
         'truck': 'caminhão',
         'traffic light': 'semáforo',
-        'stop sign': 'placa de pare'
+        'stop sign': 'placa de pare',
+        'fire hydrant': 'hidrante'
     }
 
     results = yolo_model.predict(source=frame)
